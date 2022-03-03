@@ -9,6 +9,7 @@ from discord.ext import commands
 from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
 from discord.utils import get
+from backend import keep_alive
 
 intents = discord.Intents.all()
 intents.members = True
@@ -272,4 +273,5 @@ async def update_mc_status_message(emojis, guild, message):
         await message.edit(embed=mc_dept_embed)
 
 
+keep_alive()
 client.run(bot_token)

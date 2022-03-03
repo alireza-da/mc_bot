@@ -23,5 +23,3 @@ def run():
 def keep_alive():
     t1 = Thread(target=run)
     t1.start()
-    # t2 = Thread(target=run_pre_commands)
-    # t2.start()
