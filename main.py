@@ -288,5 +288,5 @@ async def send_off_duty_notifs(guild):
         messages = await read_off_duties(channel)
         await delete_old_messages(messages)
 
-# keep_alive()
+keep_alive()
 client.run(bot_token)
