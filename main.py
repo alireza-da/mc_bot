@@ -10,6 +10,7 @@ from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
 from discord.utils import get
 from backend import keep_alive
+from notification_handler import read_off_duties, delete_old_messages
 
 intents = discord.Intents.all()
 intents.members = True
@@ -99,6 +100,12 @@ async def on_ready():
 
     _thread2 = threading.Thread(target=between_callback2)
     _thread2.start()
+
+    def between_callback_off_notif():
+        asyncio.run_coroutine_threadsafe(send_off_duty_notifs(mc_guild), client.loop)
+
+    _thread3 = threading.Thread(target=between_callback_off_notif)
+    _thread3.start()
 
 
 def find_emoji(emojies, name):
@@ -273,5 +280,13 @@ async def update_mc_status_message(emojis, guild, message):
         await message.edit(embed=mc_dept_embed)
 
 
-keep_alive()
+async def send_off_duty_notifs(guild):
+    # off duty channel link : https://discord.com/channels/798587846859423744/921891073700274269
+    while True:
+        await asyncio.sleep(5)
+        channel = guild.get_channel(921891073700274269)
+        messages = await read_off_duties(channel)
+        await delete_old_messages(messages)
+
+# keep_alive()
 client.run(bot_token)
