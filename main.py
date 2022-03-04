@@ -3,18 +3,18 @@ import threading
 import discord
 import asyncio
 
-from functools import partial
-from credentials import bot_token, sunset_sv_status_msg_link
+from credentials import bot_token
 from discord.ext import commands
 from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
-from discord.utils import get
+from discord_slash import SlashCommand
 from backend import keep_alive
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, read_off_on_duty_notifs
 
 intents = discord.Intents.all()
 intents.members = True
 client = commands.Bot(command_prefix='$', intents=intents)
+slash = SlashCommand(client, sync_commands=True)
 # loop = asyncio.get_event_loop()
 pool_executor = ProcessPoolExecutor(2)
 

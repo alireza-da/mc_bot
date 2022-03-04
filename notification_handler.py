@@ -26,7 +26,7 @@ async def read_off_duties(channel):
     return messages[0:len(messages)-1]
 
 
-async def delete_old_messages(guild, messages):
+async def delete_old_messages(messages):
     current_dt = datetime.now(tz=to_zone)
     three_hrs = timedelta(hours=3)
     for message in messages:
