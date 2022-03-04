@@ -55,10 +55,10 @@ async def send_dm(member: discord.Member, *, content):
 
 async def get_on_duty_notif(messages, user_id):
     msg_dict = {msg: msg.author.id for msg in messages}
-    print(msg_dict)
+    # print(msg_dict)
     result = []
     for ms in msg_dict:
         if "on duty" in ms.content.lower():
-            print(ms)
+            # print(ms)
             result.append(ms)
     return result

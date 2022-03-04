@@ -3,11 +3,11 @@ import threading
 import discord
 import asyncio
 
-from credentials import bot_token
+from credentials import bot_token, mc_bot_id
 from discord.ext import commands
 from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
-from discord_slash import SlashCommand
+from discord_slash import SlashCommand, SlashContext
 from backend import keep_alive
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, read_off_on_duty_notifs
 
@@ -20,6 +20,7 @@ pool_executor = ProcessPoolExecutor(2)
 
 bot_test_channel = None
 sv_status_msg = None
+guild_ids = [869221659733807125, 798587846859423744]
 
 
 @client.event
@@ -222,7 +223,7 @@ async def update_sv_status_message(emojis, channel, message):
         #     continue
         try:
             # print(channel.last_message.embeds[0].description, message)
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             embed_args = retrieve_sv_status()
             embed_sv_status = discord.Embed(type='rich', description=embed_args['description']
                                             .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
@@ -237,7 +238,7 @@ async def update_sv_status_message(emojis, channel, message):
             # await channel.purge(limit=1)
             await message.edit(embed=embed_sv_status)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error while retrieving message: {e}")
 
 
 async def update_mc_status_message(emojis, guild, message):
@@ -288,7 +289,9 @@ async def send_off_duty_notifs(guild):
         messages = await read_off_duties(channel)
         await create_embed_template(channel)
         await delete_old_messages(messages)
-        await read_off_on_duty_notifs(guild)
+        punish_channel = guild.get_channel(866287973627985920)
+        # await delete_non_bot_messages(punish_channel)
+        # await read_off_on_duty_notifs(guild)
 
 
 @client.event
@@ -313,7 +316,7 @@ async def on_reaction_add(reaction, user):
         if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
             # management supervisor rank6 chief deputy
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
-                    or 798587846868860965 in role_ids:
+                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
                 await reaction.message.reply(
                     f"<@{reaction.message.author.id}> Your off duty permission granted by <@{user.id}>")
                 return
@@ -321,12 +324,53 @@ async def on_reaction_add(reaction, user):
                 await reaction.remove(user)
         elif str(reaction.emoji) == emojis["Decline"] and reaction.message.channel.id == 921891073700274269:
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
-                    or 798587846868860965 in role_ids:
+                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
                 await reaction.message.reply(
                     f"<@{reaction.message.author.id}> Your off duty permission declined by <@{user.id}>")
                 return
             else:
                 await reaction.remove(user)
+
+
+@slash.slash(name="warn",
+             description="This is a warn command.",
+             guild_ids=guild_ids,
+             )
+async def warn(ctx: SlashContext, employee, reason):
+    role_ids = [r.id for r in ctx.author.roles]
+    emojis = client.emojis
+    emojis = {e.name: str(e) for e in emojis}
+    # supervisor and management
+    if 922137155134955530 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+        await ctx.send(
+            content=f"{employee}. Shoma be dalile: {reason}, warn gereftid :warn:".replace(":warn:", emojis["warn"]))
+
+
+@slash.slash(name="strike",
+             description="This is a strike command.",
+             guild_ids=guild_ids,
+             )
+async def warn(ctx: SlashContext, employee, reason):
+    role_ids = [r.id for r in ctx.author.roles]
+    emojis = client.emojis
+    emojis = {e.name: str(e) for e in emojis}
+    # supervisor and management
+    if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+        await ctx.send(
+            content=f"{employee}. Shoma be dalile: {reason}, strike gereftid :strikes:".replace(":strikes:",
+                                                                                                emojis["strikes"]))
+
+
+async def delete_non_bot_messages(channel):
+    # warn channel id : 866287973627985920
+    # channel = guild.get_channel(807366748118319224)
+    messages = await channel.history().flatten()
+    for message in messages:
+        if message.author.id != mc_bot_id:
+            await message.delete()
+
 
 keep_alive()
 client.run(bot_token)
