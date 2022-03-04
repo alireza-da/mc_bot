@@ -10,7 +10,7 @@ from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
 from discord.utils import get
 from backend import keep_alive
-from notification_handler import read_off_duties, delete_old_messages
+from notification_handler import read_off_duties, delete_old_messages, create_embed_template
 
 intents = discord.Intents.all()
 intents.members = True
@@ -286,6 +286,7 @@ async def send_off_duty_notifs(guild):
         await asyncio.sleep(5)
         channel = guild.get_channel(921891073700274269)
         messages = await read_off_duties(channel)
+        await create_embed_template(channel)
         await delete_old_messages(messages)
 
 keep_alive()
