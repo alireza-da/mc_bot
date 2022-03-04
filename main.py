@@ -10,7 +10,7 @@ from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
 from discord.utils import get
 from backend import keep_alive
-from notification_handler import read_off_duties, delete_old_messages, create_embed_template
+from notification_handler import read_off_duties, delete_old_messages, create_embed_template, read_off_on_duty_notifs
 
 intents = discord.Intents.all()
 intents.members = True
@@ -288,6 +288,45 @@ async def send_off_duty_notifs(guild):
         messages = await read_off_duties(channel)
         await create_embed_template(channel)
         await delete_old_messages(messages)
+        await read_off_on_duty_notifs(guild)
+
+
+@client.event
+async def on_message(message):
+    if message.author != client.user:
+        # off duty channel
+        if message.channel.id == 921891073700274269:
+            if "ic name" in message.content.lower():
+                emojis = client.emojis
+                emojis = {e.name: str(e) for e in emojis}
+                await message.add_reaction(":Accept:".replace(":Accept:", emojis["Accept"]))
+                await message.add_reaction(":Decline:".replace(":Decline:", emojis["Decline"]))
+
+
+@client.event
+async def on_reaction_add(reaction, user):
+    emojis = client.emojis
+    emojis = {e.name: str(e) for e in emojis}
+    role_ids = [r.id for r in user.roles]
+    if user != client.user:
+        print(reaction.emoji, emojis["Accept"])
+        if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
+            # management supervisor rank6 chief deputy
+            if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
+                    or 798587846868860965 in role_ids:
+                await reaction.message.reply(
+                    f"<@{reaction.message.author.id}> Your off duty permission granted by <@{user.id}>")
+                return
+            else:
+                await reaction.remove(user)
+        elif str(reaction.emoji) == emojis["Decline"] and reaction.message.channel.id == 921891073700274269:
+            if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
+                    or 798587846868860965 in role_ids:
+                await reaction.message.reply(
+                    f"<@{reaction.message.author.id}> Your off duty permission declined by <@{user.id}>")
+                return
+            else:
+                await reaction.remove(user)
 
 keep_alive()
 client.run(bot_token)
