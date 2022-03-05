@@ -41,7 +41,7 @@ async def on_ready():
     # print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
-    print(mc_guild.roles)
+    # print(mc_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
 
     global bot_test_channel
@@ -396,16 +396,24 @@ async def strike(ctx: SlashContext, employee, reason):
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
-        await ctx.send(
-            content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
-                                                                                                    emojis["strikes"]))
+
         mc = get_user(_id)
-        ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
-        save_punish(ps)
-        update_mc(mc)
-        user = get(client.get_all_members(), id=_id)
-        print(strike_roles[mc.strikes])
-        await user.add_roles(strike_roles[mc.strikes])
+        if mc.strikes < 3:
+            await ctx.send(
+                content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
+                                                                                                        emojis[
+                                                                                                            "strikes"]))
+            mc.strikes += 1
+            ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+            save_punish(ps)
+            update_mc(mc)
+            user = get(client.get_all_members(), id=_id)
+            print(strike_roles[mc.strikes])
+            await user.add_roles(strike_roles[mc.strikes])
+        else:
+            await ctx.send(
+                content=f"**{employee}. Shoma be dalile: dashtan bishtar az 3 strike fire shodid,"
+                        f" dar soorat dashtan har goone eteraz be Management payam bedahid")
 
 
 @slash.slash(name="remove-strike",
