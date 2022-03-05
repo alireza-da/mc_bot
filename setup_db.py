@@ -234,4 +234,9 @@ def create_connection():
     except Exception as e:
         logger.error(f"{e}")
 
+
 # delete_db()``
+mc = get_user(828876812700090428)
+mc.warns = 0
+mc.strikes = 1
+update_mc(mc)

@@ -386,6 +386,25 @@ async def strike(ctx: SlashContext, employee, reason):
         update_mc(mc)
 
 
+@slash.slash(name="profile",
+             description="This is a profiling command.",
+             guild_ids=guild_ids,
+             )
+async def strike(ctx: SlashContext, employee):
+    role_ids = [r.id for r in ctx.author.roles]
+    emojis = client.emojis
+    emojis = {e.name: str(e) for e in emojis}
+
+    _id = int(employee.split("!")[1].replace(">", ""))
+    # supervisor and management
+    if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+        pass
+    mc = get_user(_id)
+    await ctx.send(
+        content=f"{employee}\nIC Name : {mc.ic_name} \nRoster ID : {mc.roster_id} \nRank : {mc.rank} \nWarns : {mc.warns} \nStrikes : {mc.strikes}")
+
+
 async def delete_non_bot_messages(channel):
     # warn channel id : 866287973627985920
     # channel = guild.get_channel(807366748118319224)
