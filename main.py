@@ -240,7 +240,7 @@ async def update_sv_status_message(emojis, channel, message):
         #     continue
         try:
             # print(channel.last_message.embeds[0].description, message)
-            await asyncio.sleep(12)
+            await asyncio.sleep(15)
             embed_args = retrieve_sv_status()
             embed_sv_status = discord.Embed(type='rich', description=embed_args['description']
                                             .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
@@ -398,7 +398,7 @@ async def strike(ctx: SlashContext, employee, reason):
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
 
         mc = get_user(_id)
-        if mc.strikes < 3:
+        if mc.strikes < 2:
             await ctx.send(
                 content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
                                                                                                         emojis[
@@ -410,10 +410,20 @@ async def strike(ctx: SlashContext, employee, reason):
             user = get(client.get_all_members(), id=_id)
             print(strike_roles[mc.strikes])
             await user.add_roles(strike_roles[mc.strikes])
-        else:
+        elif mc.strikes == 2:
             await ctx.send(
-                content=f"**{employee}. Shoma be dalile: dashtan bishtar az 3 strike fire shodid,"
-                        f" dar soorat dashtan har goone eteraz be Management payam bedahid")
+                content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
+                                                                                                        emojis[
+                                                                                                            "strikes"]))
+            await ctx.send(
+                content=f"**{employee}. Shoma be dalile dashtan 3 strike fire shodid,"
+                        f" dar soorat dashtan har goone eteraz be Management payam bedahid**")
+            mc.strikes += 1
+            ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+            save_punish(ps)
+            update_mc(mc)
+            user = get(client.get_all_members(), id=_id)
+            await user.add_roles(strike_roles[mc.strikes])
 
 
 @slash.slash(name="remove-strike",
@@ -424,7 +434,9 @@ async def remove_strike(ctx: SlashContext, employee):
     role_ids = [r.id for r in ctx.author.roles]
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
-
+    mc_guild = client.get_guild(798587846859423744)
+    roles = get_ranks_roles_by_id(mc_guild)
+    strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
@@ -432,11 +444,13 @@ async def remove_strike(ctx: SlashContext, employee):
 
         mc = get_user(_id)
         if mc.strikes > 0:
+            user = get(client.get_all_members(), id=_id)
+            await user.remove_roles(strike_roles[mc.strikes])
             mc.strikes -= 1
             del_punishments(_id, get_punishments(_id)[0])
             await ctx.send(
                 content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes")
-        update_mc(mc)
+            update_mc(mc)
 
 
 @slash.slash(name="profile",
