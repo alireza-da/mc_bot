@@ -405,7 +405,7 @@ async def strike(ctx: SlashContext, employee, reason):
         update_mc(mc)
         user = get(client.get_all_members(), id=_id)
         print(strike_roles[mc.strikes])
-        user.add_roles(strike_roles[mc.strikes])
+        await user.add_roles(strike_roles[mc.strikes])
 
 
 @slash.slash(name="remove-strike",
@@ -532,11 +532,13 @@ def get_ranks_roles_by_name(guild: discord.Guild):
         res[role.name] = role
     return res
 
+
 def get_ranks_roles_by_id(guild: discord.Guild):
     res = {}
     for role in guild.roles:
         res[role.id] = role
     return res
+
 
 keep_alive()
 client.run(bot_token)
