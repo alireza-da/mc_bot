@@ -18,3 +18,5 @@ def retrieve_sv_status():
     json_res = json.loads(reg.text)
     message = json_res[0]
     return message['embeds'][0]
+
+

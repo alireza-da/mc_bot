@@ -1,4 +1,6 @@
+import functools
 import threading
+import typing
 
 import discord
 import asyncio
@@ -10,6 +12,8 @@ from concurrent.futures import ProcessPoolExecutor
 from discord_slash import SlashCommand, SlashContext
 from backend import keep_alive
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, read_off_on_duty_notifs
+from model import MechanicEmployee
+from setup_db import setup_tables, get_user, update_mc
 
 intents = discord.Intents.all()
 intents.members = True
@@ -23,6 +27,11 @@ sv_status_msg = None
 guild_ids = [869221659733807125, 798587846859423744]
 
 
+async def non_blocking_data_insertion(blocking_func: typing.Callable, *args, **kwargs) -> typing.Any:
+    func = functools.partial(blocking_func, *args, **kwargs)
+    return await client.loop.run_in_executor(None, func)
+
+
 @client.event
 async def on_ready():
     print(f"Logged In as {client.user}")
@@ -32,7 +41,6 @@ async def on_ready():
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
     # print(mc_guild.roles)
-    # print(mhkn_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
 
     global bot_test_channel
@@ -107,6 +115,9 @@ async def on_ready():
 
     _thread3 = threading.Thread(target=between_callback_off_notif)
     _thread3.start()
+    # setup_tables(create_mc_from_discord(mc_guild.members))
+
+    await non_blocking_data_insertion(setup_tables, create_mc_from_discord(mc_guild.members))
 
 
 def find_emoji(emojies, name):
@@ -312,7 +323,6 @@ async def on_reaction_add(reaction, user):
     emojis = {e.name: str(e) for e in emojis}
     role_ids = [r.id for r in user.roles]
     if user != client.user:
-        print(reaction.emoji, emojis["Accept"])
         if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
             # management supervisor rank6 chief deputy
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
@@ -340,27 +350,40 @@ async def warn(ctx: SlashContext, employee, reason):
     role_ids = [r.id for r in ctx.author.roles]
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
+    _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 922137155134955530 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
         await ctx.send(
             content=f"{employee}. Shoma be dalile: {reason}, warn gereftid :warn:".replace(":warn:", emojis["warn"]))
+        mc = get_user(_id)
+        mc.warns += 1
+        if mc.warns % 2 == 0:
+            mc.strikes += 1
+            await ctx.send(
+                content=f"{employee}. Shoma be dalile: gereftan 2 warn, strike gereftid :strike:".replace(":strike:",
+                                                                                                 emojis["strikes"]))
+        update_mc(mc)
 
 
 @slash.slash(name="strike",
              description="This is a strike command.",
              guild_ids=guild_ids,
              )
-async def warn(ctx: SlashContext, employee, reason):
+async def strike(ctx: SlashContext, employee, reason):
     role_ids = [r.id for r in ctx.author.roles]
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
+
+    _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
         await ctx.send(
-            content=f"{employee}. Shoma be dalile: {reason}, strike gereftid :strikes:".replace(":strikes:",
-                                                                                                emojis["strikes"]))
+            content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
+                                                                                                    emojis["strikes"]))
+        mc = get_user(_id)
+        update_mc(mc)
 
 
 async def delete_non_bot_messages(channel):
@@ -370,6 +393,69 @@ async def delete_non_bot_messages(channel):
     for message in messages:
         if message.author.id != mc_bot_id:
             await message.delete()
+
+
+def create_mc_from_discord(members):
+    temp = []
+    for member in members:
+        role_ids = [r.id for r in member.roles]
+        if 842695874668003328 in role_ids or role_ids.__contains__(842695874668003328):
+            # print(member, member.roles, role_ids)
+            if get_ic_roster(member) is not None:
+                ic, roster, rank = get_ic_roster(member)
+                mc = MechanicEmployee(ic, roster, member.id, "")
+                mc.rank = rank
+                temp.append(mc)
+
+    return temp
+
+
+def get_ic_roster(member: discord.Member):
+    if member:
+        role_ids = [r.id for r in member.roles]
+        if member.nick:
+            # 1|trainee
+            if "🟫" in member.nick:
+                ic = member.nick.split("🟫")[1]
+                return ic, -1, 1
+            else:
+                divided = member.nick.split(")")
+                ic = divided[1]
+                roster = divided[0].split("-")[1].replace(")", "")
+                # 2│Patrol
+                if 812998799063515186 in role_ids:
+                    return ic, roster, 2
+                # 3│Repair Tech
+                elif 812998808233443328 in role_ids:
+                    return ic, roster, 3
+                # 4│Car relief
+                elif 812998808811601920 in role_ids:
+                    return ic, roster, 4
+                # 5│Technician
+                elif 812998809420300298 in role_ids:
+                    return ic, roster, 5
+                elif 812998810397442109 in role_ids:
+                    return ic, roster, 6
+                elif 881178069241569340 in role_ids:
+                    return ic, roster, 7
+                elif 812998812943122446 in role_ids:
+                    return ic, roster, 8
+                elif 812998818328739872 in role_ids:
+                    return ic, roster, 9
+        else:
+            return member.name.split("#")[0], 0, 11
+
+
+def get_ranks_roles_by_name(guild: discord.Guild):
+    res = {}
+    for role in guild.roles:
+        res[role.name] = role
+
+
+def get_ranks_roles_by_id(guild: discord.Guild):
+    res = {}
+    for role in guild.roles:
+        res[role.id] = role
 
 
 keep_alive()
