@@ -218,9 +218,11 @@ def create_connection():
 
 
 # delete_db()
-mc = get_user(583223852641812499)
-mc.warns = 0
-mc.strikes = 0
-update_mc(mc)
+# mc = get_user(583223852641812499)
+# mc.warns = 0
+# mc.strikes = 0
+# update_mc(mc)
 
+
+del_punishments(583223852641812499, )
 

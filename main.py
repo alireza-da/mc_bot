@@ -378,7 +378,9 @@ async def warn(ctx: SlashContext, employee, reason):
             save_punish(ps)
             user = get(client.get_all_members(), id=_id)
             await user.add_roles(strike_roles[mc.strikes])
+            update_mc(mc)
             return
+
         ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
         save_punish(ps)
         update_mc(mc)
@@ -411,7 +413,6 @@ async def strike(ctx: SlashContext, employee, reason):
             save_punish(ps)
             update_mc(mc)
             user = get(client.get_all_members(), id=_id)
-            print(strike_roles[mc.strikes])
             await user.add_roles(strike_roles[mc.strikes])
             return
         elif mc.strikes == 2:
@@ -485,7 +486,7 @@ async def remove_warn(ctx: SlashContext, employee):
             # except Exception as e:
             #     print("Cant remove role")
             mc.warns -= 1
-            del_punishments(_id, get_punishments(_id)[0])
+            del_punishments(_id, get_punishments(_id)[0].date)
             await ctx.send(
                 content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
             update_mc(mc)
