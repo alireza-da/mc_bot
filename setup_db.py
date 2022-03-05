@@ -224,5 +224,3 @@ def create_connection():
 # update_mc(mc)
 
 
-del_punishments(583223852641812499, )
-
