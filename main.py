@@ -456,7 +456,7 @@ async def remove_strike(ctx: SlashContext, employee):
             except Exception as e:
                 print("Cant remove role")
             mc.strikes -= 1
-            del_punishments(_id, get_punishments(_id)[0])
+            del_punishments(_id, get_punishments(_id)[0].date)
             await ctx.send(
                 content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes**")
             update_mc(mc)
