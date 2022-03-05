@@ -367,7 +367,7 @@ async def warn(ctx: SlashContext, employee, reason):
             content=f"{employee}. Shoma be dalile: {reason}, warn gereftid :warn:".replace(":warn:", emojis["warn"]))
         mc = get_user(_id)
         mc.warns += 1
-        if mc.warns % 2 == 0:
+        if mc.warns == 2:
             mc.warns = 0
             if mc.strikes < 3:
                 mc.strikes += 1
