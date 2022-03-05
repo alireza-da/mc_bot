@@ -307,7 +307,7 @@ async def send_off_duty_notifs(guild):
         await create_embed_template(channel)
         await delete_old_messages(messages)
         punish_channel = guild.get_channel(866287973627985920)
-        # await delete_non_bot_messages(punish_channel)
+        await delete_non_bot_messages(punish_channel)
         # await read_off_on_duty_notifs(guild)
 
 
@@ -377,7 +377,7 @@ async def warn(ctx: SlashContext, employee, reason):
             save_punish(ps)
             update_mc(mc)
             user = get(client.get_all_members(), id=_id)
-            user.add_roles(strike_roles[mc.strikes])
+            await user.add_roles(strike_roles[mc.strikes])
         update_mc(mc)
 
 
@@ -410,6 +410,7 @@ async def strike(ctx: SlashContext, employee, reason):
             user = get(client.get_all_members(), id=_id)
             print(strike_roles[mc.strikes])
             await user.add_roles(strike_roles[mc.strikes])
+            return
         elif mc.strikes == 2:
             await ctx.send(
                 content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
@@ -424,6 +425,7 @@ async def strike(ctx: SlashContext, employee, reason):
             update_mc(mc)
             user = get(client.get_all_members(), id=_id)
             await user.add_roles(strike_roles[mc.strikes])
+            return
 
 
 @slash.slash(name="remove-strike",
@@ -444,12 +446,45 @@ async def remove_strike(ctx: SlashContext, employee):
 
         mc = get_user(_id)
         if mc.strikes > 0:
-            user = get(client.get_all_members(), id=_id)
-            await user.remove_roles(strike_roles[mc.strikes])
+            try:
+                user = get(client.get_all_members(), id=_id)
+                await user.remove_roles(strike_roles[mc.strikes])
+            except Exception as e:
+                print("Cant remove role")
             mc.strikes -= 1
             del_punishments(_id, get_punishments(_id)[0])
             await ctx.send(
-                content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes")
+                content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes**")
+            update_mc(mc)
+
+
+@slash.slash(name="remove-warn",
+             description="This is a strike removal command.",
+             guild_ids=guild_ids,
+             )
+async def remove_warn(ctx: SlashContext, employee):
+    role_ids = [r.id for r in ctx.author.roles]
+    emojis = client.emojis
+    emojis = {e.name: str(e) for e in emojis}
+    mc_guild = client.get_guild(798587846859423744)
+    roles = get_ranks_roles_by_id(mc_guild)
+    strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
+    _id = int(employee.split("!")[1].replace(">", ""))
+    # supervisor and management
+    if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+
+        mc = get_user(_id)
+        if mc.warns > 0:
+            # try:
+            #     user = get(client.get_all_members(), id=_id)
+            #     await user.remove_roles(strike_roles[mc.strikes])
+            # except Exception as e:
+            #     print("Cant remove role")
+            mc.warns -= 1
+            del_punishments(_id, get_punishments(_id)[0])
+            await ctx.send(
+                content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
             update_mc(mc)
 
 
