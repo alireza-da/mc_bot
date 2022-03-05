@@ -378,6 +378,16 @@ async def warn(ctx: SlashContext, employee, reason):
             save_punish(ps)
             user = get(client.get_all_members(), id=_id)
             await user.add_roles(strike_roles[mc.strikes])
+            if mc.strikes == 3:
+                await ctx.send(
+                    content=f"**{employee}. Shoma be dalile dashtan 3 strike fire shodid,"
+                            f" dar soorat dashtan har goone eteraz be Management payam bedahid**")
+                ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+                save_punish(ps)
+                update_mc(mc)
+                user = get(client.get_all_members(), id=_id)
+                await user.add_roles(strike_roles[mc.strikes])
+                return
             update_mc(mc)
             return
 
@@ -476,7 +486,7 @@ async def remove_warn(ctx: SlashContext, employee):
     strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
-    if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+    if 903913968979038209 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
 
         mc = get_user(_id)
