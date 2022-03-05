@@ -81,10 +81,12 @@ def del_punishments(_id, date, punish_type):
     query = "DELETE FROM punishments WHERE discord_id=%s and date=%s and punish_type=%s"
     con, cursor = create_connection()
     try:
-        cursor.execute(query, (_id, date, punish_type))
+        print(f"Deleting Punishment {_id}")
+        print(cursor.execute(query, (_id, date, punish_type)))
         con.commit()
         cursor.close()
         con.close()
+        print("Done")
     except Exception as e:
         print(f"[Error][del_punishments]: {e}")
 
@@ -219,10 +221,13 @@ def create_connection():
 
 # delete_db()
 # mc = get_user(583223852641812499)
-# mc.warns = 0
-# mc.strikes = 0
+# mc.warns = 1
+# mc.strikes = 1
 # update_mc(mc)
 #
 #
-# del_punishments(583223852641812499, get_punishments(583223852641812499)[0].date)
-
+# del_punishments(583223852641812499, get_punishments(583223852641812499)[0].date, Punishment.WARN)
+# # 583223852641812499
+#
+#
+# print([ps.em_id for ps in get_punishments(583223852641812499)])

@@ -357,6 +357,7 @@ async def warn(ctx: SlashContext, employee, reason):
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
     _id = int(employee.split("!")[1].replace(">", ""))
+    print(_id)
     mc_guild = client.get_guild(798587846859423744)
     roles = get_ranks_roles_by_id(mc_guild)
     strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
