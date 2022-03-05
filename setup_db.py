@@ -1,13 +1,10 @@
-from model import MechanicEmployee
+from model import MechanicEmployee, Punishment
 from credentials import db_url
-import json
 import psycopg2
 import logging
 
 logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 logger = logging.getLogger(__name__)
-
-db = dict()
 
 
 def add_mcs_to_db(mechanics_list: list[MechanicEmployee]):
@@ -44,25 +41,6 @@ def add_mcs_to_db(mechanics_list: list[MechanicEmployee]):
     # print_tables()
 
 
-# def add_admins(list_users):
-#     con, cursor = create_connection()
-#     insertion_sql = """INSERT INTO admins(username, social_credits, id, level) """ \
-#                     """VALUES(%s, %s, %s, %s)"""
-#     values = []
-#     admins = get_all_admins()
-#     print(admins)
-#     for user in list_users:
-#         if user.id in admins_id:
-#             value = (user.name, "0", str(user.id), "0")
-#             if value not in values and (user.name, 0, user.id, 0) not in admins:
-#                 values.append(value)
-#
-#     cursor.executemany(insertion_sql, values)
-#     con.commit()
-#     cursor.close()
-#     con.close()
-
-
 def setup_tables(list_users):
     # print(f"[INFO]: user detail: {[user for user in list_users]}")
     con, cursor = create_connection()
@@ -70,8 +48,8 @@ def setup_tables(list_users):
         cursor.execute("""SELECT table_name FROM information_schema.tables
                """)
         tables = cursor.fetchall()
+        print("[INFO]: Creating Tables")
         if ("mechanics",) not in tables:
-            print("[INFO]: Creating Tables")
             cursor.execute(
                 """CREATE TABLE mechanics (
                     roster_id INTEGER,
@@ -82,7 +60,13 @@ def setup_tables(list_users):
                     strikes INTEGER,
                     steam_hex VARCHAR(255)
                 )""")
-
+        if ("punishments",) not in tables:
+            cursor.execute(
+                """CREATE TABLE punishments (
+                    punish_type VARCHAR(255),
+                    date VARCHAR(255),
+                    discord_id BIGINT
+                )""")
         cursor.close()
         con.commit()
         con.close()
@@ -91,6 +75,46 @@ def setup_tables(list_users):
     add_mcs_to_db(list_users)
     # add_admins(list_users)
     # print_tables()
+
+
+def del_punishments(_id, date):
+    query = "DELETE FROM punishments WHERE discord_id=%s and date=%s"
+    con, cursor = create_connection()
+    try:
+        cursor.execute(query, (_id, date))
+        con.commit()
+        cursor.close()
+        con.close()
+    except Exception as e:
+        print(f"[Error][del_punishments]: {e}")
+
+
+def get_punishments(_id):
+    search_query = "SELECT * FROM punishments WHERE discord_id=%s"
+    con, cursor = create_connection()
+    try:
+        cursor.execute(search_query, (_id,))
+        result = cursor.fetchall()
+        result = [Punishment.decoder_static(ps) for ps in result]
+        con.commit()
+        cursor.close()
+        con.close()
+        return result
+    except Exception as e:
+        print(f"[Error][get_punishments]: {e}")
+
+
+def save_punish(ps: Punishment):
+    insert_query = """INSERT INTO punishments(punish_type, date, discord_id) """ \
+                   """VALUES(%s, %s, %s)"""
+    con, cursor = create_connection()
+    try:
+        cursor.execute(insert_query, (ps.punish_type, ps.date, ps.em_id))
+        con.commit()
+        cursor.close()
+        con.close()
+    except Exception as e:
+        print(e)
 
 
 def print_tables():
@@ -138,48 +162,6 @@ def get_all_mechanics():
         print(f"[Error]: {e}")
 
 
-def get_all_admins():
-    sql = "SELECT * FROM admins"
-    con, cursor = create_connection()
-    try:
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        con.commit()
-        cursor.close()
-        con.close()
-        return result
-    except Exception as e:
-        print(f"[Error]: {e}")
-
-
-def get_user_id(id):
-    users = db["users"]
-    index = 0
-    for user in users:
-        _user = User.user_decoder(json.loads(user))
-        if _user.id == id:
-            return index
-        index += 1
-    return index
-
-
-def get_user_occurance(id):
-    users = db["users"]
-    index = 0
-    for user in users:
-        _user = User.user_decoder(json.loads(user))
-        if _user.id == id:
-            index += 1
-    return index
-
-
-def set_user(user):
-    d = json.dumps(user.__dict__)
-    del db["users"][get_user_id(user.id)]
-    print("[INFO]: Saving user: " + d)
-    db["users"].append(d)
-
-
 def update_mc(mc: MechanicEmployee):
     update_query = "UPDATE mechanics SET roster_id = %s, ic_name = %s, discord_id = %s, rank = %s, warns = %s, " \
                    "strikes = %s, steam_hex = %s WHERE discord_id = %s "
@@ -215,7 +197,7 @@ def update_mc(mc: MechanicEmployee):
 
 
 def delete_db():
-    update_query = "DROP TABLE mechanics"
+    update_query = "DROP TABLE punishments"
     con, cursor = create_connection()
     try:
         cursor.execute(update_query)
@@ -223,7 +205,7 @@ def delete_db():
         cursor.close()
         con.close()
     except Exception as e:
-        print(f"[Error][setup_db.py]: {e}")
+        print(f"[Error][delete_db]: {e}")
 
 
 def create_connection():
@@ -235,8 +217,10 @@ def create_connection():
         logger.error(f"{e}")
 
 
-# delete_db()``
-mc = get_user(828876812700090428)
-mc.warns = 0
-mc.strikes = 1
-update_mc(mc)
+# delete_db()
+# mc = get_user(828876812700090428)
+# mc.warns = 0
+# mc.strikes = 1
+# update_mc(mc)
+
+

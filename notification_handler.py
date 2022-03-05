@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from dateutil import tz
+from setup_db import del_punishments, get_user, update_mc
 
 import discord
 
@@ -62,3 +63,19 @@ async def get_on_duty_notif(messages, user_id):
             # print(ms)
             result.append(ms)
     return result
+
+
+async def delete_warn_2_weeks(channel: discord.TextChannel):
+    messages = await channel.history().flatten()
+    current_dt = datetime.now(tz=to_zone)
+    two_weeks = timedelta(weeks=2)
+    for message in messages:
+        utc = message.created_at.replace(tzinfo=from_zone)
+        central = utc.astimezone(to_zone)
+        diff = current_dt - central
+        if diff > two_weeks:
+            del_punishments(message.mentions[0].id, message.created_at)
+            mc = get_user(message.mentions[0].id)
+            mc.warns -= 1
+            update_mc(mc)
+            await message.delete()

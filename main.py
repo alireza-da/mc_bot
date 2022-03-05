@@ -1,19 +1,20 @@
+import asyncio
 import functools
 import threading
 import typing
+from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime
 
 import discord
-import asyncio
-
-from credentials import bot_token, mc_bot_id
 from discord.ext import commands
-from utils import retrieve_sv_status
-from concurrent.futures import ProcessPoolExecutor
 from discord_slash import SlashCommand, SlashContext
+
 from backend import keep_alive
-from notification_handler import read_off_duties, delete_old_messages, create_embed_template, read_off_on_duty_notifs
-from model import MechanicEmployee
-from setup_db import setup_tables, get_user, update_mc
+from credentials import bot_token, mc_bot_id
+from model import MechanicEmployee, Punishment
+from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks
+from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments
+from utils import retrieve_sv_status
 
 intents = discord.Intents.all()
 intents.members = True
@@ -115,9 +116,14 @@ async def on_ready():
 
     _thread3 = threading.Thread(target=between_callback_off_notif)
     _thread3.start()
-    # setup_tables(create_mc_from_discord(mc_guild.members))
 
-    await non_blocking_data_insertion(setup_tables, create_mc_from_discord(mc_guild.members))
+    def between_callback_old_warns():
+        asyncio.run_coroutine_threadsafe(delete_warn_2_weeks(mc_guild.get_channel(866287973627985920)), client.loop)
+
+    _thread4 = threading.Thread(target=between_callback_old_warns())
+    _thread4.start()
+
+    await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
 
 
 def find_emoji(emojies, name):
@@ -361,8 +367,9 @@ async def warn(ctx: SlashContext, employee, reason):
         if mc.warns % 2 == 0:
             mc.strikes += 1
             await ctx.send(
-                content=f"{employee}. Shoma be dalile: gereftan 2 warn, strike gereftid :strike:".replace(":strike:",
-                                                                                                 emojis["strikes"]))
+                content=f"**{employee}. Shoma be dalile: gereftan 2 warn, strike gereftid** :strike:".replace(
+                    ":strike:",
+                    emojis["strikes"]))
         update_mc(mc)
 
 
@@ -383,6 +390,8 @@ async def strike(ctx: SlashContext, employee, reason):
             content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
                                                                                                     emojis["strikes"]))
         mc = get_user(_id)
+        ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+        save_punish(ps)
         update_mc(mc)
 
 
@@ -391,9 +400,9 @@ async def strike(ctx: SlashContext, employee, reason):
              guild_ids=guild_ids,
              )
 async def profile(ctx: SlashContext, employee):
-    role_ids = [r.id for r in ctx.author.roles]
-    emojis = client.emojis
-    emojis = {e.name: str(e) for e in emojis}
+    # role_ids = [r.id for r in ctx.author.roles]
+    # emojis = client.emojis
+    # emojis = {e.name: str(e) for e in emojis}
 
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
@@ -414,7 +423,9 @@ async def delete_non_bot_messages(channel):
             await message.delete()
 
 
-def create_mc_from_discord(members):
+async def create_mc_from_discord(guild: discord.Guild):
+    members = guild.members
+
     temp = []
     for member in members:
         role_ids = [r.id for r in member.roles]
@@ -423,7 +434,19 @@ def create_mc_from_discord(members):
             if get_ic_roster(member) is not None:
                 ic, roster, rank = get_ic_roster(member)
                 mc = MechanicEmployee(ic, roster, member.id, "")
+                punishes = await non_blocking_data_insertion(get_punishments, member.id)
+                warns = 0
+                strikes = 0
+                if punishes is not None:
+                    for punish in punishes:
+                        if punish.punish_type == Punishment.WARN:
+                            warns += 1
+                        elif punish.punish_type == Punishment.STRIKE:
+                            strikes += 1
+                    mc.warns = warns
+                    mc.strikes = strikes
                 mc.rank = rank
+
                 temp.append(mc)
 
     return temp
@@ -437,7 +460,7 @@ def get_ic_roster(member: discord.Member):
             if "🟫" in member.nick:
                 ic = member.nick.split("🟫")[1]
                 return ic, -1, 1
-            else:
+            elif ")" in member.nick:
                 divided = member.nick.split(")")
                 ic = divided[1]
                 roster = divided[0].split("-")[1].replace(")", "")

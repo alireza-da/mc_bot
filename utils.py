@@ -14,9 +14,10 @@ def retrieve_sv_status():
         'referer': "https://discord.com/channels/747051409400397894/747051409844862991",
         'x-super-properties': "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiQ2hyb21lIiwiZGV2aWNlIjoiIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzk4LjAuNDc1OC4xMDIgU2FmYXJpLzUzNy4zNiIsImJyb3dzZXJfdmVyc2lvbiI6Ijk4LjAuNDc1OC4xMDIiLCJvc192ZXJzaW9uIjoiMTAiLCJyZWZlcnJlciI6IiIsInJlZmVycmluZ19kb21haW4iOiIiLCJyZWZlcnJlcl9jdXJyZW50IjoiaHR0cHM6Ly9kaXNjb3JkLmNvbS8iLCJyZWZlcnJpbmdfZG9tYWluX2N1cnJlbnQiOiJkaXNjb3JkLmNvbSIsInJlbGVhc2VfY2hhbm5lbCI6InN0YWJsZSIsImNsaWVudF9idWlsZF9udW1iZXIiOjExNjk2MSwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
     }
-    reg = requests.get("https://discord.com/api/v9/channels/926148025007607908/messages?limit=50", headers=headers)
+    reg = requests.get("https://discord.com/api/v9/channels/926148025007607908/messages?limit=5", headers=headers)
     json_res = json.loads(reg.text)
     message = json_res[0]
     return message['embeds'][0]
+
 
 
