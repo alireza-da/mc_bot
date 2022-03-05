@@ -2,19 +2,19 @@ import asyncio
 import functools
 import threading
 import typing
-from concurrent.futures import ProcessPoolExecutor
-from datetime import datetime
-
 import discord
+
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
-
+from discord.utils import get
 from backend import keep_alive
 from credentials import bot_token, mc_bot_id
 from model import MechanicEmployee, Punishment
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks
-from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments
+from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments, del_punishments
 from utils import retrieve_sv_status
+from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime
 
 intents = discord.Intents.all()
 intents.members = True
@@ -41,7 +41,7 @@ async def on_ready():
     # print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
-    # print(mc_guild.roles)
+    print(mc_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
 
     global bot_test_channel
@@ -240,7 +240,7 @@ async def update_sv_status_message(emojis, channel, message):
         #     continue
         try:
             # print(channel.last_message.embeds[0].description, message)
-            await asyncio.sleep(10)
+            await asyncio.sleep(12)
             embed_args = retrieve_sv_status()
             embed_sv_status = discord.Embed(type='rich', description=embed_args['description']
                                             .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
@@ -357,6 +357,9 @@ async def warn(ctx: SlashContext, employee, reason):
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
     _id = int(employee.split("!")[1].replace(">", ""))
+    mc_guild = client.get_guild(798587846859423744)
+    roles = get_ranks_roles_by_id(mc_guild)
+    strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     # supervisor and management
     if 922137155134955530 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
@@ -370,6 +373,11 @@ async def warn(ctx: SlashContext, employee, reason):
                 content=f"**{employee}. Shoma be dalile: gereftan 2 warn, strike gereftid** :strike:".replace(
                     ":strike:",
                     emojis["strikes"]))
+            ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+            save_punish(ps)
+            update_mc(mc)
+            user = get(client.get_all_members(), id=_id)
+            user.add_roles(strike_roles[mc.strikes])
         update_mc(mc)
 
 
@@ -381,8 +389,10 @@ async def strike(ctx: SlashContext, employee, reason):
     role_ids = [r.id for r in ctx.author.roles]
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
-
+    mc_guild = client.get_guild(798587846859423744)
+    roles = get_ranks_roles_by_id(mc_guild)
     _id = int(employee.split("!")[1].replace(">", ""))
+    strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
             or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
@@ -392,6 +402,32 @@ async def strike(ctx: SlashContext, employee, reason):
         mc = get_user(_id)
         ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
         save_punish(ps)
+        update_mc(mc)
+        user = get(client.get_all_members(), id=_id)
+        print(strike_roles[mc.strikes])
+        user.add_roles(strike_roles[mc.strikes])
+
+
+@slash.slash(name="remove-strike",
+             description="This is a strike removal command.",
+             guild_ids=guild_ids,
+             )
+async def remove_strike(ctx: SlashContext, employee):
+    role_ids = [r.id for r in ctx.author.roles]
+    emojis = client.emojis
+    emojis = {e.name: str(e) for e in emojis}
+
+    _id = int(employee.split("!")[1].replace(">", ""))
+    # supervisor and management
+    if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+
+        mc = get_user(_id)
+        if mc.strikes > 0:
+            mc.strikes -= 1
+            del_punishments(_id, get_punishments(_id)[0])
+            await ctx.send(
+                content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes")
         update_mc(mc)
 
 
@@ -494,13 +530,13 @@ def get_ranks_roles_by_name(guild: discord.Guild):
     res = {}
     for role in guild.roles:
         res[role.name] = role
-
+    return res
 
 def get_ranks_roles_by_id(guild: discord.Guild):
     res = {}
     for role in guild.roles:
         res[role.id] = role
-
+    return res
 
 keep_alive()
 client.run(bot_token)

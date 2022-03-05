@@ -218,9 +218,9 @@ def create_connection():
 
 
 # delete_db()
-# mc = get_user(828876812700090428)
-# mc.warns = 0
-# mc.strikes = 1
-# update_mc(mc)
+mc = get_user(828876812700090428)
+mc.warns = 0
+mc.strikes = 0
+update_mc(mc)
 
 
