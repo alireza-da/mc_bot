@@ -77,11 +77,11 @@ def setup_tables(list_users):
     # print_tables()
 
 
-def del_punishments(_id, date):
-    query = "DELETE FROM punishments WHERE discord_id=%s and date=%s"
+def del_punishments(_id, date, punish_type):
+    query = "DELETE FROM punishments WHERE discord_id=%s and date=%s and punish_type=%s"
     con, cursor = create_connection()
     try:
-        cursor.execute(query, (_id, date))
+        cursor.execute(query, (_id, date, punish_type))
         con.commit()
         cursor.close()
         con.close()

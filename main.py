@@ -369,6 +369,11 @@ async def warn(ctx: SlashContext, employee, reason):
         mc.warns += 1
         if mc.warns == 2:
             mc.warns = 0
+            punishes = get_punishments(_id)
+            for p in punishes:
+                if p.punish_type == Punishment.WARN:
+                    del_punishments(_id, p.date, p.punish_type)
+                    break
             if mc.strikes < 3:
                 mc.strikes += 1
                 await ctx.send(
