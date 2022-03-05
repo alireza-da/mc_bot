@@ -368,30 +368,33 @@ async def warn(ctx: SlashContext, employee, reason):
         mc = get_user(_id)
         mc.warns += 1
         if mc.warns % 2 == 0:
-            mc.strikes += 1
             mc.warns = 0
-            await ctx.send(
-                content=f"**{employee}. Shoma be dalile: gereftan 2 warn, strike gereftid** :strike:".replace(
-                    ":strike:",
-                    emojis["strikes"]))
-            ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
-            save_punish(ps)
-            user = get(client.get_all_members(), id=_id)
-            await user.add_roles(strike_roles[mc.strikes])
+            if mc.strikes < 3:
+                mc.strikes += 1
+                await ctx.send(
+                    content=f"**{employee}. Shoma be dalile: gereftan 2 warn, strike gereftid** :strike:".replace(
+                        ":strike:",
+                        emojis["strikes"]))
+
+                ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+                save_punish(ps)
+                user = get(client.get_all_members(), id=_id)
+                await user.add_roles(strike_roles[mc.strikes])
+                update_mc(mc)
             if mc.strikes == 3:
                 await ctx.send(
                     content=f"**{employee}. Shoma be dalile dashtan 3 strike fire shodid,"
                             f" dar soorat dashtan har goone eteraz be Management payam bedahid**")
-                ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
-                save_punish(ps)
-                update_mc(mc)
-                user = get(client.get_all_members(), id=_id)
-                await user.add_roles(strike_roles[mc.strikes])
+                # ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+                # save_punish(ps)
+                #
+                # user = get(client.get_all_members(), id=_id)
+                # await user.add_roles(strike_roles[mc.strikes])
                 return
             update_mc(mc)
             return
 
-        ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
+        ps = Punishment(Punishment.WARN, datetime.now(), _id)
         save_punish(ps)
         update_mc(mc)
 
