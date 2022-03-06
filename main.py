@@ -408,6 +408,16 @@ async def warn(ctx: SlashContext, employee, reason):
         update_mc(mc)
 
 
+@slash.slash(name="send-message",
+             description="This is a message sender command.",
+             guild_ids=guild_ids,
+             )
+async def send_message(ctx: SlashContext, channel_id, title, description):
+    channel = ctx.guild.get_channel(channel_id)
+    embed_var = discord.Embed(title=title, description=description, color=discord.Colour(0xFFFF00))
+    await channel.send(embed=embed_var)
+
+
 @slash.slash(name="strike",
              description="This is a strike command.",
              guild_ids=guild_ids,
