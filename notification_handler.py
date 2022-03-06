@@ -29,7 +29,7 @@ async def read_off_duties(channel):
 
 async def delete_old_messages(messages):
     current_dt = datetime.now(tz=to_zone)
-    three_hrs = timedelta(hours=3)
+    three_hrs = timedelta(hours=5)
     for message in messages:
         utc = message.created_at.replace(tzinfo=from_zone)
         central = utc.astimezone(to_zone)
