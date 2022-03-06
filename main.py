@@ -38,7 +38,7 @@ async def on_ready():
     print(f"Logged In as {client.user}")
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
-    # print(emojis)
+    print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
     # print(mc_guild.roles)
@@ -412,9 +412,10 @@ async def warn(ctx: SlashContext, employee, reason):
              description="This is a message sender command.",
              guild_ids=guild_ids,
              )
-async def send_message_embed(ctx: SlashContext, channel_id, title, description):
+async def send_message_embed(ctx: SlashContext, channel_id, title, *, description):
+    print(description)
     channel = ctx.guild.get_channel(int(channel_id))
-    embed_var = discord.Embed(title=title, description=description.replace("\n", "\n"), color=discord.Colour(0xFFFF00))
+    embed_var = discord.Embed(title=title, description=description.replace('\-n', "\n"), color=discord.Colour(0xFFFF00))
     await channel.send(embed=embed_var)
 
 
