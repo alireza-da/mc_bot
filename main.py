@@ -478,8 +478,9 @@ async def remove_strike(ctx: SlashContext, employee):
             except Exception as e:
                 print("Cant remove role")
             mc.strikes -= 1
-
-            del_punishments(_id, get_punishments(_id)[0].date, Punishment.STRIKE)
+            for p in get_punishments(_id):
+                if p.punish_type == Punishment.STRIKE:
+                    del_punishments(_id, p.date, Punishment.STRIKE)
             await ctx.send(
                 content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes**")
             update_mc(mc)
@@ -509,7 +510,9 @@ async def remove_warn(ctx: SlashContext, employee):
             # except Exception as e:
             #     print("Cant remove role")
             mc.warns -= 1
-            del_punishments(_id, get_punishments(_id)[0].date, Punishment.WARN)
+            for p in get_punishments(_id):
+                if p.punish_type == Punishment.WARN:
+                    del_punishments(_id, p.date, Punishment.WARN)
             await ctx.send(
                 content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
             update_mc(mc)
