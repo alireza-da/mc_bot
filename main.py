@@ -408,6 +408,19 @@ async def warn(ctx: SlashContext, employee, reason):
         update_mc(mc)
 
 
+@client.event
+async def on_message(message: discord.Message):
+    if message.author != client.user:
+        await client.process_commands(message)
+
+
+@client.command(name="sm")
+async def sm(ctx, channel_id, title, *, description):
+    channel = ctx.guild.get_channel(int(channel_id))
+    embed_var = discord.Embed(title=title, description=description.replace('\-n', "\n"), color=discord.Colour(0xFFFF00))
+    await channel.send(embed=embed_var)
+
+
 @slash.slash(name="send-message",
              description="This is a message sender command.",
              guild_ids=guild_ids,
