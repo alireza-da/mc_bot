@@ -414,7 +414,7 @@ async def warn(ctx: SlashContext, employee, reason):
              )
 async def send_message_embed(ctx: SlashContext, channel_id, title, description):
     channel = ctx.guild.get_channel(int(channel_id))
-    embed_var = discord.Embed(title=title, description=description, color=discord.Colour(0xFFFF00))
+    embed_var = discord.Embed(title=title, description=description.replace(".", "\n."), color=discord.Colour(0xFFFF00))
     await channel.send(embed=embed_var)
 
 
