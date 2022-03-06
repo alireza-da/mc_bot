@@ -412,10 +412,10 @@ async def warn(ctx: SlashContext, employee, reason):
              description="This is a message sender command.",
              guild_ids=guild_ids,
              )
-async def send_message(ctx: SlashContext, channel_id, title, description):
-    print(channel_id)
+async def send_message_embed(ctx: SlashContext, channel_id, title, description, url):
     channel = ctx.guild.get_channel(int(channel_id))
-    embed_var = discord.Embed(title=title, description=description, color=discord.Colour(0xFFFF00))
+    print(description)
+    embed_var = discord.Embed(title=title, description=description, color=discord.Colour(0xFFFF00), url=url)
     await channel.send(embed=embed_var)
 
 
