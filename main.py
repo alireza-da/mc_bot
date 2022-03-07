@@ -333,7 +333,8 @@ async def on_reaction_add(reaction, user):
         if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
             # management supervisor rank6 chief deputy
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
-                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids\
+                    or role_ids.__contains__(903913968979038209):
                 await reaction.message.reply(
                     f"<@{reaction.message.author.id}> Your off duty permission granted by <@{user.id}>")
                 return
