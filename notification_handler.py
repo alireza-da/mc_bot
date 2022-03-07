@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from dateutil import tz
 from setup_db import del_punishments, get_user, update_mc
-
+from model import Punishment
 import discord
 
 from_zone = tz.tzutc()
@@ -74,7 +74,7 @@ async def delete_warn_2_weeks(channel: discord.TextChannel):
         central = utc.astimezone(to_zone)
         diff = current_dt - central
         if diff > two_weeks:
-            del_punishments(message.mentions[0].id, message.created_at)
+            del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
             mc = get_user(message.mentions[0].id)
             mc.warns -= 1
             update_mc(mc)

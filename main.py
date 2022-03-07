@@ -38,7 +38,7 @@ async def on_ready():
     print(f"Logged In as {client.user}")
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
-    print(emojis)
+    # print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
     # print(mc_guild.roles)
@@ -240,7 +240,7 @@ async def update_sv_status_message(emojis, channel, message):
         #     continue
         try:
             # print(channel.last_message.embeds[0].description, message)
-            await asyncio.sleep(15)
+            await asyncio.sleep(30)
             embed_args = retrieve_sv_status()
             embed_sv_status = discord.Embed(type='rich', description=embed_args['description']
                                             .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
@@ -321,6 +321,7 @@ async def on_message(message):
                 emojis = {e.name: str(e) for e in emojis}
                 await message.add_reaction(":Accept:".replace(":Accept:", emojis["Accept"]))
                 await message.add_reaction(":Decline:".replace(":Decline:", emojis["Decline"]))
+        await client.process_commands(message)
 
 
 @client.event
@@ -406,12 +407,6 @@ async def warn(ctx: SlashContext, employee, reason):
         ps = Punishment(Punishment.WARN, datetime.now(), _id)
         save_punish(ps)
         update_mc(mc)
-
-
-@client.event
-async def on_message(message: discord.Message):
-    if message.author != client.user:
-        await client.process_commands(message)
 
 
 @client.command(name="sm")
