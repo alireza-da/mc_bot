@@ -410,10 +410,10 @@ async def warn(ctx: SlashContext, employee, reason):
 
 
 @client.command(name="sm")
-async def sm(ctx, channel_id, title, *, description):
+async def sm(ctx, channel_id, title, mentions, *, description):
     channel = ctx.guild.get_channel(int(channel_id))
-    embed_var = discord.Embed(title=title, description=description.replace('\-n', "\n"), color=discord.Colour(0xFFFF00))
-    await channel.send(embed=embed_var)
+    embed_var = discord.Embed(title=title, description=description, color=discord.Colour(0xFFFF00))
+    await channel.send(embed=embed_var, content=mentions)
 
 
 @slash.slash(name="send-message",
