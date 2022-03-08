@@ -316,7 +316,7 @@ async def send_off_duty_notifs(guild):
         punish_channel = guild.get_channel(866287973627985920)
         await delete_non_bot_messages(punish_channel)
         await send_lobby_dm(guild)
-        await send_interview_dm(guild)
+        # await send_interview_dm(guild)
         # await read_off_on_duty_notifs(guild)
 
 
