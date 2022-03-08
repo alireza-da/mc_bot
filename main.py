@@ -36,6 +36,12 @@ async def non_blocking_data_insertion(blocking_func: typing.Callable, *args, **k
 @client.event
 async def on_ready():
     print(f"Logged In as {client.user}")
+    try:
+        ids = "https: // discord.com / channels / 747051409400397894 / 926148025007607908 / 926230250088697867".split("/")
+        sv_msg = await client.get_guild(int(ids[-3])).get_channel(int(ids[-2])).history().flatten()
+    except Exception as e:
+        print(e)
+    # print(sv_msg)
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
     # print(emojis)
@@ -331,6 +337,7 @@ async def on_reaction_add(reaction, user):
     role_ids = [r.id for r in user.roles]
     if user != client.user:
         if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
+            print(role_ids.__contains__(903913968979038209))
             # management supervisor rank6 chief deputy
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
                     or 798587846868860965 in role_ids or 903940304749600768 in role_ids\
@@ -342,7 +349,7 @@ async def on_reaction_add(reaction, user):
                 await reaction.remove(user)
         elif str(reaction.emoji) == emojis["Decline"] and reaction.message.channel.id == 921891073700274269:
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
-                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(903913968979038209):
                 await reaction.message.reply(
                     f"<@{reaction.message.author.id}> Your off duty permission declined by <@{user.id}>")
                 return
