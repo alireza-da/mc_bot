@@ -337,7 +337,6 @@ async def on_reaction_add(reaction, user):
     role_ids = [r.id for r in user.roles]
     if user != client.user:
         if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
-            print(role_ids.__contains__(903913968979038209))
             # management supervisor rank6 chief deputy
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
                     or 798587846868860965 in role_ids or 903940304749600768 in role_ids\
@@ -372,7 +371,7 @@ async def warn(ctx: SlashContext, employee, reason):
     strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     # supervisor and management
     if 922137155134955530 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(903913968979038209):
         await ctx.send(
             content=f"{employee}. Shoma be dalile: {reason}, warn gereftid :warn:".replace(":warn:", emojis["warn"]))
         mc = get_user(_id)
@@ -505,7 +504,7 @@ async def remove_strike(ctx: SlashContext, employee):
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(903913968979038209):
 
         mc = get_user(_id)
         if mc.strikes > 0:
