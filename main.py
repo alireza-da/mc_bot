@@ -10,7 +10,8 @@ from discord.utils import get
 from backend import keep_alive
 from credentials import bot_token, mc_bot_id
 from model import MechanicEmployee, Punishment
-from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks
+from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks,\
+    send_lobby_dm, send_interview_dm
 from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments, del_punishments
 from utils import retrieve_sv_status
 from concurrent.futures import ProcessPoolExecutor
@@ -132,8 +133,8 @@ async def on_ready():
     await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
 
 
-def find_emoji(emojies, name):
-    for emoji in emojies:
+def find_emoji(emojis, name):
+    for emoji in emojis:
         if emoji.name == name:
             return emoji
 
@@ -314,6 +315,8 @@ async def send_off_duty_notifs(guild):
         await delete_old_messages(messages)
         punish_channel = guild.get_channel(866287973627985920)
         await delete_non_bot_messages(punish_channel)
+        await send_lobby_dm(guild)
+        await send_interview_dm(guild)
         # await read_off_on_duty_notifs(guild)
 
 
