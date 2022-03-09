@@ -221,13 +221,13 @@ def create_connection():
 
 # delete_db()
 # mc = get_user(583223852641812499)
-# mc.warns = 1
-# mc.strikes = 1
+# mc.warns = 0
+# mc.strikes = 0
 # update_mc(mc)
 #
 #
 # del_punishments(583223852641812499, get_punishments(583223852641812499)[0].date, Punishment.WARN)
-# # 583223852641812499
-#
-#
-# print([ps.em_id for ps in get_punishments(583223852641812499)])
+# # # 583223852641812499
+# #
+# #
+# print([ps.punish_type for ps in get_punishments(583223852641812499)])

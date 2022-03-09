@@ -10,7 +10,7 @@ from discord.utils import get
 from backend import keep_alive
 from credentials import bot_token, mc_bot_id
 from model import MechanicEmployee, Punishment
-from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks,\
+from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks, \
     send_lobby_dm, send_interview_dm
 from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments, del_punishments
 from utils import retrieve_sv_status
@@ -38,7 +38,8 @@ async def non_blocking_data_insertion(blocking_func: typing.Callable, *args, **k
 async def on_ready():
     print(f"Logged In as {client.user}")
     try:
-        ids = "https: // discord.com / channels / 747051409400397894 / 926148025007607908 / 926230250088697867".split("/")
+        ids = "https: // discord.com / channels / 747051409400397894 / 926148025007607908 / 926230250088697867".split(
+            "/")
         sv_msg = await client.get_guild(int(ids[-3])).get_channel(int(ids[-2])).history().flatten()
     except Exception as e:
         print(e)
@@ -48,6 +49,15 @@ async def on_ready():
     # print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
+    punishes = mc_guild.get_channel(866287973627985920)
+    # punishes = await punishes.history().flatten()
+    # for punish in punishes:
+    #     if "strike" in punish.content:
+    #         save_punish(Punishment(Punishment.STRIKE, punish.created_at, punish.mentions[0].id))
+    #     elif "warn" in punish.content:
+    #         save_punish(Punishment(Punishment.WARN, punish.created_at, punish.mentions[0].id))
+
+    await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
     # print(mc_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
 
@@ -129,8 +139,6 @@ async def on_ready():
 
     _thread4 = threading.Thread(target=between_callback_old_warns())
     _thread4.start()
-
-    await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
 
 
 def find_emoji(emojis, name):
@@ -342,7 +350,7 @@ async def on_reaction_add(reaction, user):
         if str(reaction.emoji) == emojis["Accept"] and reaction.message.channel.id == 921891073700274269:
             # management supervisor rank6 chief deputy
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
-                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids\
+                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids \
                     or role_ids.__contains__(903913968979038209):
                 await reaction.message.reply(
                     f"<@{reaction.message.author.id}> Your off duty permission granted by <@{user.id}>")
@@ -351,7 +359,8 @@ async def on_reaction_add(reaction, user):
                 await reaction.remove(user)
         elif str(reaction.emoji) == emojis["Decline"] and reaction.message.channel.id == 921891073700274269:
             if 798587846868860960 in role_ids or 922137155134955530 in role_ids or 812998810397442109 in role_ids \
-                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(903913968979038209):
+                    or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(
+                903913968979038209):
                 await reaction.message.reply(
                     f"<@{reaction.message.author.id}> Your off duty permission declined by <@{user.id}>")
                 return
@@ -374,7 +383,8 @@ async def warn(ctx: SlashContext, employee, reason):
     strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     # supervisor and management
     if 922137155134955530 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(903913968979038209):
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(
+        903913968979038209):
         await ctx.send(
             content=f"{employee}. Shoma be dalile: {reason}, warn gereftid :warn:".replace(":warn:", emojis["warn"]))
         mc = get_user(_id)
@@ -507,7 +517,8 @@ async def remove_strike(ctx: SlashContext, employee):
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(903913968979038209):
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(
+        903913968979038209):
 
         mc = get_user(_id)
         if mc.strikes > 0:
