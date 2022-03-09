@@ -123,11 +123,11 @@ async def send_lobby_dm(mc_guild: discord.Guild):
         for interviewer in interviewers:
             if interviewer.status != discord.Status.offline:
                 channel = await interviewer.create_dm()
-                name = member.name
-                if member.nick:
-                    name = member
+                # name = member.name
+                # if member.nick:
+                #     name = member.nick
                 invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
-                embed_var = discord.Embed(title="Interview Lobby", description=f"{name} - dar lobby discord "
+                embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{member.id}> - dar lobby discord "
                                                                            f"mechanici montazer interviewer mibas"
                                                                            f"had lotfan "
                                f"peygiri konid \n", color=discord.Colour(0xFFFF00), url=invite_link)
