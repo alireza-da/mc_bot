@@ -59,7 +59,7 @@ async def on_ready():
                                     .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
                                     .replace("<:SSSD:830877171924336650>", emojis["SSSD"])
                                     .replace("<:SSMC:831502019537534997>", emojis["SSMC"])
-                                    .replace("<:SSTX:943853533466349628>", emojis["SSTD"])
+                                    .replace("<:SSTX:926230250088697867>", emojis["SSTD"])
                                     .replace("<a:SSverify_black:807340739721166919>", emojis["SSverify_black"])
                                     .replace("<a:SSload:794664822607970324>", emojis["SSload"])
                                     , color=embed_args['color'])
