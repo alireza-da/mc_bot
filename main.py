@@ -618,6 +618,8 @@ async def create_mc_from_discord(guild: discord.Guild):
                             strikes += 1
                     mc.warns = warns
                     mc.strikes = strikes
+                if warns % 2 == 0:
+                    mc.warns = 0
                 mc.rank = rank
 
                 temp.append(mc)
