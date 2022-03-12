@@ -57,7 +57,7 @@ async def on_ready():
     #     elif "warn" in punish.content:
     #         save_punish(Punishment(Punishment.WARN, punish.created_at, punish.mentions[0].id))
 
-    await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
+    # await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
     # print(mc_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
 
@@ -377,14 +377,13 @@ async def warn(ctx: SlashContext, employee, reason):
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
     _id = int(employee.split("!")[1].replace(">", ""))
-    print(_id)
     mc_guild = client.get_guild(798587846859423744)
     roles = get_ranks_roles_by_id(mc_guild)
     strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     # supervisor and management
     if 922137155134955530 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(
-        903913968979038209):
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or \
+            role_ids.__contains__(903913968979038209) or 903913968979038209 in role_ids:
         await ctx.send(
             content=f"{employee}. Shoma be dalile: {reason}, warn gereftid :warn:".replace(":warn:", emojis["warn"]))
         mc = get_user(_id)
@@ -441,7 +440,6 @@ async def sm(ctx, channel_id, title, mentions, *, description):
              guild_ids=guild_ids,
              )
 async def send_message_embed(ctx: SlashContext, channel_id, title, *, description):
-    print(description)
     channel = ctx.guild.get_channel(int(channel_id))
     embed_var = discord.Embed(title=title, description=description.replace('\-n', "\n"), color=discord.Colour(0xFFFF00))
     await channel.send(embed=embed_var)
@@ -621,7 +619,6 @@ async def create_mc_from_discord(guild: discord.Guild):
                 if warns % 2 == 0:
                     mc.warns = 0
                 mc.rank = rank
-
                 temp.append(mc)
 
     return temp
