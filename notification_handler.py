@@ -40,7 +40,6 @@ async def delete_old_messages(messages):
 
         diff = current_dt - central
         if diff > three_hrs:
-            print("deleting messages")
             await message.delete()
 
 
@@ -157,6 +156,8 @@ def remove_cd_lobby():
         central = utc.astimezone(to_zone)
         diff = current_dt - central
         if diff > half_hour:
-            interview_cool_down_list.pop(key)
+            print(f"removing cool down of{key}")
+            del interview_cool_down_list[key]
+
 
 
