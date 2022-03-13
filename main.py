@@ -57,7 +57,7 @@ async def on_ready():
     #     elif "warn" in punish.content:
     #         save_punish(Punishment(Punishment.WARN, punish.created_at, punish.mentions[0].id))
 
-    # await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
+
     # print(mc_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
 
@@ -139,6 +139,8 @@ async def on_ready():
 
     _thread4 = threading.Thread(target=between_callback_old_warns())
     _thread4.start()
+
+    await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
 
 
 def find_emoji(emojis, name):
@@ -316,7 +318,7 @@ async def update_mc_status_message(emojis, guild, message):
 async def send_off_duty_notifs(guild):
     # off duty channel link : https://discord.com/channels/798587846859423744/921891073700274269
     while True:
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
         channel = guild.get_channel(921891073700274269)
         messages = await read_off_duties(channel)
         await create_embed_template(channel)
