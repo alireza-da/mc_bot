@@ -331,7 +331,10 @@ async def send_off_duty_notifs(guild):
 
 
 @client.event
-async def on_message(message):
+async def on_message(message: discord.Message):
+    channel = message.guild.get_channel(921891073700274269)
+    messages = await read_off_duties(channel)
+    await delete_old_messages(messages)
     if message.author != client.user:
         # off duty channel
         if message.channel.id == 921891073700274269:
