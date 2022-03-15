@@ -520,8 +520,7 @@ async def remove_strike(ctx: SlashContext, employee):
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids or role_ids.__contains__(
-        903913968979038209):
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
 
         mc = get_user(_id)
         if mc.strikes > 0:
