@@ -37,19 +37,19 @@ async def non_blocking_data_insertion(blocking_func: typing.Callable, *args, **k
 @client.event
 async def on_ready():
     print(f"Logged In as {client.user}")
-    try:
-        ids = "https: // discord.com / channels / 747051409400397894 / 926148025007607908 / 926230250088697867".split(
-            "/")
-        sv_msg = await client.get_guild(int(ids[-3])).get_channel(int(ids[-2])).history().flatten()
-    except Exception as e:
-        print(e)
+    # try:
+    #     ids = "https: // discord.com / channels / 747051409400397894 / 926148025007607908 / 926230250088697867".split(
+    #         "/")
+    #     sv_msg = await client.get_guild(int(ids[-3])).get_channel(int(ids[-2])).history().flatten()
+    # except Exception as e:
+    #     print(e)
     # print(sv_msg)
     emojis = client.emojis
     emojis = {e.name: str(e) for e in emojis}
     # print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
-    punishes = mc_guild.get_channel(866287973627985920)
+    # punishes = mc_guild.get_channel(866287973627985920)
     # punishes = await punishes.history().flatten()
     # for punish in punishes:
     #     if "strike" in punish.content:
