@@ -4,6 +4,7 @@ from setup_db import del_punishments, get_user, update_mc
 from model import Punishment
 from credentials import interviewer_role_id, lobby_vc_id, management_role_id, mc_chief_id, mc_deputy_id
 
+import asyncio
 import discord
 
 from_zone = tz.tzutc()
@@ -37,7 +38,6 @@ async def delete_old_messages(messages):
     for message in messages:
         utc = message.created_at.replace(tzinfo=from_zone)
         central = utc.astimezone(to_zone)
-
         diff = current_dt - central
         if diff > three_hrs:
             await message.delete()
@@ -71,19 +71,23 @@ async def get_on_duty_notif(messages, user_id):
 
 
 async def delete_warn_2_weeks(channel: discord.TextChannel):
-    messages = await channel.history().flatten()
-    current_dt = datetime.now(tz=to_zone)
-    two_weeks = timedelta(weeks=2)
-    for message in messages:
-        utc = message.created_at.replace(tzinfo=from_zone)
-        central = utc.astimezone(to_zone)
-        diff = current_dt - central
-        if diff > two_weeks:
-            del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
-            mc = get_user(message.mentions[0].id)
-            mc.warns -= 1
-            update_mc(mc)
-            await message.delete()
+    while True:
+        await asyncio.sleep(5)
+        messages = await channel.history().flatten()
+        current_dt = datetime.now(tz=to_zone)
+        two_weeks = timedelta(weeks=2)
+        for message in messages:
+            utc = message.created_at.replace(tzinfo=from_zone)
+            central = utc.astimezone(to_zone)
+            diff = current_dt - central
+            if diff > two_weeks:
+                print(f"Removing warn of{message.mentions[0].id}")
+                del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
+                mc = get_user(message.mentions[0].id)
+                print(f"Removing warn of{mc.ic_name}")
+                mc.warns -= 1
+                update_mc(mc)
+                await message.delete()
 
 
 async def send_interview_dm(mc_guild: discord.Guild):
