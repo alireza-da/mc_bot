@@ -80,14 +80,17 @@ async def delete_warn_2_weeks(channel: discord.TextChannel):
             utc = message.created_at.replace(tzinfo=from_zone)
             central = utc.astimezone(to_zone)
             diff = current_dt - central
-            if diff > two_weeks:
-                print(f"Removing warn of{message.mentions[0].id}")
-                del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
-                mc = get_user(message.mentions[0].id)
-                print(f"Removing warn of{mc.ic_name}")
-                mc.warns -= 1
-                update_mc(mc)
-                await message.delete()
+            if diff > two_weeks and "strike" not in message.content:
+                try:
+                    print(f"Removing warn of{message.mentions[0].id}")
+                    del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
+                    mc = get_user(message.mentions[0].id)
+                    print(f"Removing warn of{mc.ic_name}")
+                    mc.warns -= 1
+                    update_mc(mc)
+                    await message.delete()
+                except Exception as e:
+                    print(e)
 
 
 async def send_interview_dm(mc_guild: discord.Guild):
