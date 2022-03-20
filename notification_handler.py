@@ -3,6 +3,7 @@ from dateutil import tz
 from setup_db import del_punishments, get_user, update_mc
 from model import Punishment
 from credentials import interviewer_role_id, lobby_vc_id, management_role_id, mc_chief_id, mc_deputy_id
+from discord.utils import get
 
 import asyncio
 import discord
@@ -121,6 +122,8 @@ async def send_lobby_dm(mc_guild: discord.Guild):
     for vc in mc_guild.voice_channels:
         if vc.id == lobby_vc_id:
             lobby_vc = vc
+            break
+
     # lobby_vc = await mc_guild.get_channel(lobby_vc_id)
     for member in lobby_vc.members:
         # 24/7 bot
@@ -139,6 +142,18 @@ async def send_lobby_dm(mc_guild: discord.Guild):
                                                                            f"had lotfan "
                                f"peygiri konid \n", color=discord.Colour(0xFFFF00), url=invite_link)
                 await channel.send(embed=embed_var, content=invite_link)
+        # deksy = get(mc_guild.members, id=583223852641812499)
+        # channel = await deksy.create_dm()
+        # # name = member.name
+        # # if member.nick:
+        # #     name = member.nick
+        # invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
+        # embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{deksy.id}> - dar lobby discord "
+        #                                                                f"mechanici montazer interviewer mibas"
+        #                                                                f"had lotfan "
+        #                                                                f"peygiri konid \n",
+        #                           color=discord.Colour(0xFFFF00), url=invite_link)
+        # await channel.send(embed=embed_var, content=invite_link)
     remove_cd_lobby()
 
 
@@ -156,6 +171,7 @@ def get_interviewers(mc_guild: discord.Guild):
 
 
 def remove_cd_lobby():
+    # print(interview_cool_down_list)
     half_hour = timedelta(minutes=30)
     current_dt = datetime.now(tz=to_zone)
     for key in interview_cool_down_list:
@@ -163,7 +179,7 @@ def remove_cd_lobby():
         central = utc.astimezone(to_zone)
         diff = current_dt - central
         if diff > half_hour:
-            print(f"removing cool down of{key}")
+            print(f"[INFO]: Removing cool down of {key}")
             del interview_cool_down_list[key]
 
 
