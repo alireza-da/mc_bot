@@ -129,24 +129,20 @@ async def send_lobby_dm(mc_guild: discord.Guild):
         # 24/7 bot
         if member.id == 369208607126061057 or member in interview_cool_down_list.keys():
             continue
-        interview_cool_down_list[member] = datetime.now()
+
         for interviewer in interviewers:
             if interviewer.status != discord.Status.offline:
                 channel = await interviewer.create_dm()
-                # name = member.name
-                # if member.nick:
-                #     name = member.nick
                 invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
                 embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{member.id}> - dar lobby discord "
                                                                            f"mechanici montazer interviewer mibas"
                                                                            f"had lotfan "
                                f"peygiri konid \n", color=discord.Colour(0xFFFF00), url=invite_link)
                 await channel.send(embed=embed_var, content=invite_link)
+                print(f"SENT Lobby DM to {interviewer}")
+        interview_cool_down_list[member] = datetime.now()
         # deksy = get(mc_guild.members, id=583223852641812499)
         # channel = await deksy.create_dm()
-        # # name = member.name
-        # # if member.nick:
-        # #     name = member.nick
         # invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
         # embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{deksy.id}> - dar lobby discord "
         #                                                                f"mechanici montazer interviewer mibas"
