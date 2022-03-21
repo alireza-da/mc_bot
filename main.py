@@ -317,9 +317,9 @@ async def update_mc_status_message(emojis, guild, message):
 
 async def send_off_duty_notifs(guild):
     # off duty channel link : https://discord.com/channels/798587846859423744/921891073700274269
+    channel = guild.get_channel(921891073700274269)
     while True:
         await asyncio.sleep(3)
-        channel = guild.get_channel(921891073700274269)
         messages = await read_off_duties(channel)
         await create_embed_template(channel)
         await delete_old_messages(messages)
