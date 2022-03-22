@@ -80,7 +80,7 @@ async def on_ready():
     sv_status_msg = await sv_status_channel.send(embed=embed_sv_status)
 
     def between_callback():
-        asyncio.run_coroutine_threadsafe(update_sv_status_message(emojis, bot_test_channel, sv_status_msg), client.loop)
+        asyncio.run_coroutine_threadsafe(update_sv_status_message(emojis, sv_status_msg), client.loop)
 
     _thread = threading.Thread(target=between_callback)
     _thread.start()
@@ -248,8 +248,9 @@ def count_employees(guild):
     return counter
 
 
-async def update_sv_status_message(emojis, channel, message):
+async def update_sv_status_message(emojis, message):
     while True:
+        await asyncio.sleep(30)
         embed_args = retrieve_sv_status()
         embed_sv_status = discord.Embed(type='rich', description=embed_args['description'], color=embed_args['color'])
         embed_sv_status.set_footer(text=embed_args['footer']['text'], icon_url=embed_args['footer']['icon_url'])
@@ -257,7 +258,7 @@ async def update_sv_status_message(emojis, channel, message):
         #     continue
         try:
             # print(channel.last_message.embeds[0].description, message)
-            await asyncio.sleep(30)
+
             embed_args = retrieve_sv_status()
             embed_sv_status = discord.Embed(type='rich', description=embed_args['description']
                                             .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
