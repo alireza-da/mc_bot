@@ -26,7 +26,6 @@ async def read_off_on_duty_notifs(guild):
 async def read_off_duties(channel):
     messages = await channel.history(limit=200).flatten()
     for message in messages:
-        # print(message)
         if message.author.id == 765915730171920465:
             messages.remove(message)
 
@@ -72,26 +71,24 @@ async def get_on_duty_notif(messages, user_id):
 
 
 async def delete_warn_2_weeks(channel: discord.TextChannel):
-    while True:
-        await asyncio.sleep(5)
-        messages = await channel.history().flatten()
-        current_dt = datetime.now(tz=to_zone)
-        two_weeks = timedelta(weeks=2)
-        for message in messages:
-            utc = message.created_at.replace(tzinfo=from_zone)
-            central = utc.astimezone(to_zone)
-            diff = current_dt - central
-            if diff > two_weeks and "strike" not in message.content:
-                try:
-                    print(f"Removing warn of{message.mentions[0].id}")
-                    del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
-                    mc = get_user(message.mentions[0].id)
-                    print(f"Removing warn of{mc.ic_name}")
+    messages = await channel.history().flatten()
+    current_dt = datetime.now(tz=to_zone)
+    two_weeks = timedelta(weeks=2)
+    for message in messages:
+        utc = message.created_at.replace(tzinfo=from_zone)
+        central = utc.astimezone(to_zone)
+        diff = current_dt - central
+        if diff > two_weeks and "strike" not in message.content:
+            try:
+                del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
+                mc = get_user(message.mentions[0].id)
+                print(f"Removing warn of {mc.ic_name}")
+                if mc.warns > 0:
                     mc.warns -= 1
-                    update_mc(mc)
-                    await message.delete()
-                except Exception as e:
-                    print(e)
+                update_mc(mc)
+                await message.delete()
+            except Exception as e:
+                print(e)
 
 
 async def send_interview_dm(mc_guild: discord.Guild):

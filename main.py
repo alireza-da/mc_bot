@@ -2,20 +2,21 @@ import asyncio
 import functools
 import threading
 import typing
-import discord
+from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime
 
+import discord
 from discord.ext import commands
-from discord_slash import SlashCommand, SlashContext
 from discord.utils import get
+from discord_slash import SlashCommand, SlashContext
+
 from backend import keep_alive
 from credentials import bot_token, mc_bot_id
 from model import MechanicEmployee, Punishment
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks, \
-    send_lobby_dm, send_interview_dm
+    send_lobby_dm
 from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments, del_punishments
 from utils import retrieve_sv_status
-from concurrent.futures import ProcessPoolExecutor
-from datetime import datetime
 
 intents = discord.Intents.all()
 intents.members = True
@@ -56,7 +57,6 @@ async def on_ready():
     #         save_punish(Punishment(Punishment.STRIKE, punish.created_at, punish.mentions[0].id))
     #     elif "warn" in punish.content:
     #         save_punish(Punishment(Punishment.WARN, punish.created_at, punish.mentions[0].id))
-
 
     # print(mc_guild.roles)
     sv_status_channel = await get_server_status_channel(mc_guild)
@@ -134,11 +134,11 @@ async def on_ready():
     _thread3 = threading.Thread(target=between_callback_off_notif)
     _thread3.start()
 
-    def between_callback_old_warns():
-        asyncio.run_coroutine_threadsafe(delete_warn_2_weeks(mc_guild.get_channel(866287973627985920)), client.loop)
-
-    _thread4 = threading.Thread(target=between_callback_old_warns())
-    _thread4.start()
+    # def between_callback_old_warns():
+    #     asyncio.run_coroutine_threadsafe(delete_warn_2_weeks(mc_guild.get_channel(866287973627985920)), client.loop)
+    #
+    # _thread4 = threading.Thread(target=between_callback_old_warns())
+    # _thread4.start()
 
     await non_blocking_data_insertion(setup_tables, await create_mc_from_discord(mc_guild))
 
@@ -177,7 +177,7 @@ def count_employees(guild):
                "mng_cnt": 0, "mng_off_cnt": 0, "mng_on_cnt": 0,
                "supervisor_cnt": 0, "supervisor_off_cnt": 0, "supervisor_on_cnt": 0,
                }
-    role_ids = [r.id for r in guild.roles]
+    # role_ids = [r.id for r in guild.roles]
     # print(role_ids)
     # 903912198064177154 "employee role id"
     for member in guild.members:
@@ -317,15 +317,17 @@ async def update_mc_status_message(emojis, guild, message):
 
 async def send_off_duty_notifs(guild):
     # off duty channel link : https://discord.com/channels/798587846859423744/921891073700274269
-    channel = guild.get_channel(921891073700274269)
+    off_duty_channel = guild.get_channel(921891073700274269)
+    punish_channel = guild.get_channel(866287973627985920)
+
     while True:
-        await asyncio.sleep(3)
-        messages = await read_off_duties(channel)
-        await create_embed_template(channel)
+        await asyncio.sleep(5)
+        messages = await read_off_duties(off_duty_channel)
+        await create_embed_template(off_duty_channel)
         await delete_old_messages(messages)
-        punish_channel = guild.get_channel(866287973627985920)
         await delete_non_bot_messages(punish_channel)
         await send_lobby_dm(guild)
+        await delete_warn_2_weeks(punish_channel)
         # await send_interview_dm(guild)
         # await read_off_on_duty_notifs(guild)
 
