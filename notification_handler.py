@@ -35,7 +35,7 @@ async def read_off_duties(channel):
 
 async def delete_old_messages(messages):
     current_dt = datetime.now(tz=to_zone)
-    three_hrs = timedelta(hours=3)
+    three_hrs = timedelta(minutes=3)
     for message in messages:
         utc = message.created_at.replace(tzinfo=from_zone)
         central = utc.astimezone(to_zone)
@@ -144,7 +144,7 @@ async def send_lobby_dm(mc_guild: discord.Guild):
         deksy = get(mc_guild.members, id=583223852641812499)
         channel = await deksy.create_dm()
         invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
-        embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{deksy.id}> - dar lobby discord "
+        embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{member.id}> - dar lobby discord "
                                                                        f"mechanici montazer interviewer mibas"
                                                                        f"had lotfan "
                                                                        f"peygiri konid \n",
