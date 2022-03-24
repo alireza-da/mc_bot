@@ -80,13 +80,13 @@ async def delete_warn_2_weeks(channel: discord.TextChannel):
         diff = current_dt - central
         if diff > two_weeks and "strike" not in message.content:
             try:
+                await message.delete()
                 del_punishments(message.mentions[0].id, message.created_at, Punishment.WARN)
                 mc = get_user(message.mentions[0].id)
                 print(f"Removing warn of {mc.ic_name}")
                 if mc.warns > 0:
                     mc.warns -= 1
                 update_mc(mc)
-                await message.delete()
             except Exception as e:
                 print(e)
 

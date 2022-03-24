@@ -551,11 +551,7 @@ async def remove_strike(ctx: SlashContext, employee):
              )
 async def remove_warn(ctx: SlashContext, employee):
     role_ids = [r.id for r in ctx.author.roles]
-    emojis = client.emojis
-    emojis = {e.name: str(e) for e in emojis}
     mc_guild = client.get_guild(798587846859423744)
-    roles = get_ranks_roles_by_id(mc_guild)
-    strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 903913968979038209 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
@@ -563,11 +559,6 @@ async def remove_warn(ctx: SlashContext, employee):
 
         mc = get_user(_id)
         if mc.warns > 0:
-            # try:
-            #     user = get(client.get_all_members(), id=_id)
-            #     await user.remove_roles(strike_roles[mc.strikes])
-            # except Exception as e:
-            #     print("Cant remove role")
             mc.warns -= 1
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.WARN:
