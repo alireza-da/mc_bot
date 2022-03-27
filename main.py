@@ -38,6 +38,7 @@ async def non_blocking_data_insertion(blocking_func: typing.Callable, *args, **k
 @client.event
 async def on_ready():
     print(f"Logged In as {client.user}")
+
     # try:
     #     ids = "https: // discord.com / channels / 747051409400397894 / 926148025007607908 / 926230250088697867".split(
     #         "/")
@@ -314,6 +315,8 @@ async def update_mc_status_message(emojis, guild, message):
                   f":red_circle:  Offline: {counter['emp_off_counter']} | "
                   f":zzz: Away(AFK): {counter['emp_counter'] - counter['emp_on_counter'] - counter['emp_off_counter']}")
         await message.edit(embed=mc_dept_embed)
+        await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f" "
+                                                                                                        f"{counter['emp_on_counter']} Mechanics"))
 
 
 async def send_off_duty_notifs(guild):
@@ -527,7 +530,7 @@ async def remove_strike(ctx: SlashContext, employee):
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids: 
 
         mc = get_user(_id)
         if mc.strikes > 0:
