@@ -605,8 +605,8 @@ async def profile(ctx: SlashContext, employee):
 @slash.slash(name="star", description="Star dealer", guild_ids=guild_ids)
 async def star_store(ctx: SlashContext):
     if ctx.author:
-        roles = get_ranks_roles_by_id(ctx.guild)
-        await ctx.author.add_roles(roles[three_stars_role_id])
+        # roles = get_ranks_roles_by_id(ctx.guild)
+        # await ctx.author.add_roles(roles[three_stars_role_id])
         emojis = client.emojis
         emojis = {e.name: str(e) for e in emojis}
         role_ids = [r.id for r in ctx.author.roles]
