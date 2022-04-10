@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from dateutil import tz
 from setup_db import del_punishments, get_user, update_mc
 from model import Punishment
-from credentials import interviewer_role_id, lobby_vc_id, management_role_id, mc_chief_id, mc_deputy_id
+from credentials import interviewer_role_id, lobby_vc_id, management_role_id, mc_chief_id, mc_deputy_id, \
+    rank_up_manager_role_id
 from discord.utils import get
 
 import asyncio
@@ -101,9 +102,10 @@ async def send_interview_dm(mc_guild: discord.Guild):
                 invite_link = f"https://discord.com/channels/798587846859423744/{tc.id}"
                 ticket_id = tc.name.split("-")[1]
                 ticket_cd_list.append(tc)
-                embed_var = discord.Embed(title=tc.name, description=f"Yek ticket be id **{ticket_id}** dar channel **{tc.name}** "
-                                                                     f"server discord mechanici dar "
-                                   f"vaziat open qarar dararad lotfan residegi konid",
+                embed_var = discord.Embed(title=tc.name,
+                                          description=f"Yek ticket be id **{ticket_id}** dar channel **{tc.name}** "
+                                                      f"server discord mechanici dar "
+                                                      f"vaziat open qarar dararad lotfan residegi konid",
                                           url=invite_link, color=discord.Colour(0xFFFF00))
 
                 await channel.send(embed=embed_var)
@@ -131,17 +133,18 @@ async def send_lobby_dm(mc_guild: discord.Guild):
             if interviewer.status != discord.Status.offline:
                 channel = await interviewer.create_dm()
                 invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
-                embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{member.id}> - dar lobby discord "
-                                                                           f"mechanici montazer interviewer mibas"
-                                                                           f"had lotfan "
-                               f"peygiri konid \n", color=discord.Colour(0xFFFF00), url=invite_link)
+                embed_var = discord.Embed(title="Interview Lobby", description=f"<@{member.id}> - dar lobby discord "
+                                                                               f"mechanici montazer interviewer mibas"
+                                                                               f"had lotfan "
+                                                                               f"peygiri konid \n",
+                                          color=discord.Colour(0xFFFF00), url=invite_link)
                 await channel.send(embed=embed_var, content=invite_link)
                 print(f"SENT Lobby DM to {interviewer}")
         interview_cool_down_list[member] = datetime.now()
         deksy = get(mc_guild.members, id=583223852641812499)
         channel = await deksy.create_dm()
         invite_link = await lobby_vc.create_invite(max_uses=1, unique=True)
-        embed_var = discord.Embed(title="Interview Lobby", description=f"<@!{member.id}> - dar lobby discord "
+        embed_var = discord.Embed(title="Interview Lobby", description=f"<@{member.id}> - dar lobby discord "
                                                                        f"mechanici montazer interviewer mibas"
                                                                        f"had lotfan "
                                                                        f"peygiri konid \n",
@@ -154,8 +157,21 @@ def get_interviewers(mc_guild: discord.Guild):
     res = []
     for mc in mc_guild.members:
         role_ids = [r.id for r in mc.roles]
-        if role_ids.__contains__(interviewer_role_id) or role_ids.__contains__(management_role_id)\
+        if role_ids.__contains__(interviewer_role_id) or role_ids.__contains__(management_role_id) \
                 or role_ids.__contains__(mc_chief_id) or role_ids.__contains__(mc_deputy_id):
+            res.append(mc)
+        # if mc.id == 583223852641812499:
+        #     res.append(mc)
+
+    return res
+
+
+def get_rank_up_managers(mc_guild: discord.Guild):
+    res = []
+    for mc in mc_guild.members:
+        role_ids = [r.id for r in mc.roles]
+        if role_ids.__contains__(rank_up_manager_role_id) or role_ids.__contains__(
+                mc_chief_id) or role_ids.__contains__(mc_deputy_id):
             res.append(mc)
         # if mc.id == 583223852641812499:
         #     res.append(mc)
@@ -176,4 +192,6 @@ def remove_cd_lobby():
             del interview_cool_down_list[key]
 
 
-
+async def on_star_role_add(mc_guild: discord.Guild):
+    async for log in mc_guild.audit_logs(limit=100):
+        print(log)

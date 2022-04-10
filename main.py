@@ -3,20 +3,23 @@ import functools
 import threading
 import typing
 from concurrent.futures import ProcessPoolExecutor
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import discord
+import discord_slash
 from discord.ext import commands
 from discord.utils import get
 from discord_slash import SlashCommand, SlashContext
 
 from backend import keep_alive
-from credentials import bot_token, mc_bot_id
+from credentials import bot_token, mc_bot_id, three_stars_role_id, two_stars_role_id, one_star_role_id
 from model import MechanicEmployee, Punishment
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks, \
-    send_lobby_dm
+    send_lobby_dm, on_star_role_add, get_rank_up_managers
 from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments, del_punishments
 from utils import retrieve_sv_status
+from discord_slash.utils.manage_components import create_button, create_actionrow
+from discord_slash.model import ButtonStyle
 
 intents = discord.Intents.all()
 intents.members = True
@@ -51,9 +54,15 @@ async def on_ready():
     # print(emojis)
     mhkn_guild = client.get_guild(869221659733807125)
     mc_guild = client.get_guild(798587846859423744)
+
+    # deksy = get(mc_guild.members, id=583223852641812499)
+    # channel = await deksy.create_dm()
+    # await channel.send("Bot is alive!")
     # punishes = mc_guild.get_channel(866287973627985920)
     # punishes = await punishes.history().flatten()
     # for punish in punishes:
+    #     if "remove" in punish.content:
+    #         continue
     #     if "strike" in punish.content:
     #         save_punish(Punishment(Punishment.STRIKE, punish.created_at, punish.mentions[0].id))
     #     elif "warn" in punish.content:
@@ -332,6 +341,7 @@ async def send_off_duty_notifs(guild):
         await delete_non_bot_messages(punish_channel)
         await send_lobby_dm(guild)
         await delete_warn_2_weeks(punish_channel)
+        # await on_star_role_add(guild)
         # await send_interview_dm(guild)
         # await read_off_on_duty_notifs(guild)
 
@@ -522,15 +532,14 @@ async def strike(ctx: SlashContext, employee, reason):
              )
 async def remove_strike(ctx: SlashContext, employee):
     role_ids = [r.id for r in ctx.author.roles]
-    emojis = client.emojis
-    emojis = {e.name: str(e) for e in emojis}
+
     mc_guild = client.get_guild(798587846859423744)
     roles = get_ranks_roles_by_id(mc_guild)
     strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
-            or 798587846868860965 in role_ids or 903940304749600768 in role_ids: 
+            or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
 
         mc = get_user(_id)
         if mc.strikes > 0:
@@ -539,13 +548,15 @@ async def remove_strike(ctx: SlashContext, employee):
                 await user.remove_roles(strike_roles[mc.strikes])
             except Exception as e:
                 print("Cant remove role")
-            mc.strikes -= 1
+
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.STRIKE:
                     del_punishments(_id, p.date, Punishment.STRIKE)
-            await ctx.send(
-                content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes**")
-            update_mc(mc)
+                    await ctx.send(
+                        content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes**")
+                    update_mc(mc)
+                    mc.strikes -= 1
+                    break
 
 
 @slash.slash(name="remove-warn",
@@ -554,7 +565,7 @@ async def remove_strike(ctx: SlashContext, employee):
              )
 async def remove_warn(ctx: SlashContext, employee):
     role_ids = [r.id for r in ctx.author.roles]
-    mc_guild = client.get_guild(798587846859423744)
+    # mc_guild = client.get_guild(798587846859423744)
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
     if 903913968979038209 in role_ids or 798587846868860960 in role_ids or 812998810397442109 in role_ids \
@@ -562,13 +573,14 @@ async def remove_warn(ctx: SlashContext, employee):
 
         mc = get_user(_id)
         if mc.warns > 0:
-            mc.warns -= 1
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.WARN:
                     del_punishments(_id, p.date, Punishment.WARN)
-            await ctx.send(
-                content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
-            update_mc(mc)
+                    await ctx.send(
+                        content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
+                    update_mc(mc)
+                    mc.warns -= 1
+                    break
 
 
 @slash.slash(name="profile",
@@ -588,6 +600,160 @@ async def profile(ctx: SlashContext, employee):
     mc = get_user(_id)
     await ctx.send(
         content=f"{employee}\nIC Name : {mc.ic_name} \nRoster ID : {mc.roster_id} \nRank : {mc.rank} \nWarns : {mc.warns} \nStrikes : {mc.strikes}")
+
+
+@slash.slash(name="star", description="Star dealer", guild_ids=guild_ids)
+async def star_store(ctx: SlashContext):
+    if ctx.author:
+        # roles = get_ranks_roles_by_id(ctx.guild)
+        # await ctx.author.add_roles(roles[three_stars_role_id])
+        emojis = client.emojis
+        emojis = {e.name: str(e) for e in emojis}
+        role_ids = [r.id for r in ctx.author.roles]
+        if three_stars_role_id in role_ids:
+            embed_var = discord.Embed(title=":star: Star Menu :star:", description=f"1-:star: Rent MC VIP cars "
+                                                                                   f":race_car:\n2-:star: Remove one "
+                                                                                   f"of your strikes {emojis['strikes']}\n3-:star::star::star: One rank "
+                                                                                   f" boost :arrow_up:",
+                                      color=discord.Colour(0xFFFF00))
+            buttons = [
+                create_button(
+                    custom_id="rent_vip",
+                    style=ButtonStyle.blue,
+                    label="1"
+                ),
+                create_button(
+                    custom_id="remove_strike",
+                    style=ButtonStyle.blue,
+                    label="2"
+                ),
+                create_button(
+                    custom_id="rank_boost",
+                    style=ButtonStyle.blue,
+                    label="3",
+                ),
+            ]
+
+            action_row = create_actionrow(*buttons)
+
+            return await ctx.channel.send(embed=embed_var, components=[action_row])
+        elif two_stars_role_id in role_ids or one_star_role_id in role_ids:
+            embed_var = discord.Embed(title=f":star: Star Menu :star:", description=f"1-:star: Remove one "
+                                                                                    f"of your strikes {emojis['strikes']}\n2-:star: Rent MC VIP cars "
+                                                                                    f":race_car:",
+                                      color=discord.Colour(0xFFFF00))
+            buttons = [
+                create_button(
+                    custom_id="remove_strike",
+                    style=ButtonStyle.blue,
+                    label="1"
+                ),
+                create_button(
+                    custom_id="rent_vip",
+                    style=ButtonStyle.blue,
+                    label="2"
+                ),
+            ]
+
+            action_row = create_actionrow(*buttons)
+
+            return await ctx.channel.send(embed=embed_var, components=[action_row])
+        else:
+            embed_var = discord.Embed(title=":star: Star Menu :star:",
+                                      description="شما ستاره کافی برای خرید ندارید",
+                                      color=discord.Colour(0xFFFF00))
+            return await ctx.channel.send(embed=embed_var)
+
+
+@slash.component_callback(components=["remove_strike", "rank_boost", "rent_vip"])
+async def star_store_handler(ctx: discord_slash.context.ComponentContext):
+    number_of_stars = 0
+    roles = get_ranks_roles_by_id(ctx.guild)
+    role_ids = [r.id for r in ctx.author.roles]
+    star_number = {1: one_star_role_id, 2: two_stars_role_id, 3: three_stars_role_id}
+    if three_stars_role_id in role_ids:
+        number_of_stars = 3
+    elif two_stars_role_id in role_ids:
+        number_of_stars = 2
+    elif one_star_role_id in role_ids:
+        number_of_stars = 1
+    if number_of_stars <= 0:
+        embed_var = discord.Embed(title=":star: Star Menu :star:", description="شما ستاره کافی برای خرید ندارید",
+                                  color=discord.Colour(0xFFFF00))
+        await ctx.channel.send(embed=embed_var)
+        return
+    if ctx.custom_id == "rent_vip":
+        await ctx.author.remove_roles(roles[star_number[number_of_stars]])
+        number_of_stars -= 1
+        if number_of_stars > 0:
+            await ctx.author.add_roles(roles[star_number[number_of_stars]])
+        await ctx.send(
+            content=f'{ctx.author.mention} شما به مدت دو هفته اجازه استفاده از ماشین های VIP گنگ مکانیکی را دارید')
+
+    elif ctx.custom_id == "remove_strike":
+
+        strike_roles = {1: roles[798587846859423749], 2: roles[798587846859423750], 3: roles[798587846859423751]}
+        _id = ctx.author_id
+        # supervisor and management
+        if 798587846868860960 in role_ids or 812998810397442109 in role_ids \
+                or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
+
+            mc = get_user(_id)
+            if mc.strikes > 0:
+                try:
+                    user = get(ctx.guild.members, id=_id)
+                    await user.remove_roles(strike_roles[mc.strikes])
+                except Exception as e:
+                    print("Cant remove role")
+                removed = False
+                for p in get_punishments(_id):
+                    if p.punish_type == Punishment.STRIKE:
+                        one_week = timedelta(weeks=1)
+                        if p.date > one_week:
+                            await ctx.author.remove_roles(roles[star_number[number_of_stars]])
+                            number_of_stars -= 1
+                            if number_of_stars > 0:
+                                await ctx.author.add_roles(roles[star_number[number_of_stars]])
+                            del_punishments(_id, p.date, Punishment.STRIKE)
+                            mc.strikes -= 1
+                            embed_var = discord.Embed(title=":star: Star Menu :star:",
+                                                      description=f"**{ctx.author.mention}. One of your strikes has been removed now you have {mc.strikes} strikes**",
+                                                      color=discord.Colour(0xFFFF00))
+                            await ctx.channel.send(embed=embed_var)
+                            update_mc(mc)
+                            removed = True
+                            break
+
+                if not removed:
+                    embed_var = discord.Embed(title=":star: Star Menu :star:",
+                                              description=f"**{ctx.author.mention} متاسفانه مقدور به پاک کردن اخطار شما نیستیم. از زمان صادر شدن اخطار باید یک هفته گذشته باشد **",
+                                              color=discord.Colour(0xFF0000))
+                    await ctx.channel.send(embed=embed_var)
+
+            else:
+                await ctx.send(content="خوشبختانه شما هیچ اخطاری ندارید")
+    elif ctx.custom_id == "rank_boost":
+        if number_of_stars < 3:
+            embed_var = discord.Embed(title=":star: Star Menu :star:", description="شما ستاره کافی برای خرید ندارید",
+                                      color=discord.Colour(0xFFFF00))
+            await ctx.channel.send(embed=embed_var)
+            return
+        number_of_stars -= 3
+        await ctx.author.remove_roles(roles[three_stars_role_id])
+        for rum in get_rank_up_managers(ctx.guild):
+            channel = await rum.create_dm()
+            embed_var = discord.Embed(title="Rank Up",
+                                      description=f"{ctx.author.mention} سه ستاره خود را جهت ترفیع رتبه استفاده کرد لطفا رسیدگی کنید ",
+                                      color=discord.Colour(0xFFFF00))
+            await channel.send(embed=embed_var)
+        deksy = get(ctx.guild.members, id=583223852641812499)
+        channel = await deksy.create_dm()
+        embed_var = discord.Embed(title="Rank Up",
+                                  description=f"{ctx.author.mention} used three stars in order to have one bonus rank up "
+                                              f"this week, make it done.",
+                                  color=discord.Colour(0xFFFF00))
+        await channel.send(embed=embed_var)
+    return
 
 
 async def delete_non_bot_messages(channel):

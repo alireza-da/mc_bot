@@ -14,3 +14,7 @@ mc_deputy_id = 903940304749600768
 interviewer_role_id = 922221364620972094
 lobby_vc_id = 852877257609052160
 management_role_id = 798587846868860960
+three_stars_role_id = 916694528134635551
+two_stars_role_id = 916694480080494603
+one_star_role_id = 916694284323938325
+rank_up_manager_role_id = 920045877731659829

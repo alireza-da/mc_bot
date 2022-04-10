@@ -130,11 +130,11 @@ def print_tables():
     con.commit()
 
 
-def get_user(id):
+def get_user(_id):
     user_ret = "SELECT * FROM mechanics WHERE discord_id = %s"
     con, cursor = create_connection()
     try:
-        cursor.execute(user_ret, (id,))
+        cursor.execute(user_ret, (_id,))
         _user = cursor.fetchall()
         # print(f"[INFO]: Retrieving database user : {_user[0]}")
         user = MechanicEmployee.decoder_static(_user[0])
@@ -221,13 +221,8 @@ def create_connection():
 
 # delete_db()
 # mc = get_user(583223852641812499)
+# print(mc.ic_name)
 # mc.warns = 0
-# mc.strikes = 0
+# mc.strikes = 2
 # update_mc(mc)
-#
-#
-# del_punishments(583223852641812499, get_punishments(583223852641812499)[0].date, Punishment.WARN)
-# # # 583223852641812499
-# #
-# #
-# print([ps.punish_type for ps in get_punishments(583223852641812499)])
+# setup_tables([])
