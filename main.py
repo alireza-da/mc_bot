@@ -15,7 +15,7 @@ from backend import keep_alive
 from credentials import bot_token, mc_bot_id, three_stars_role_id, two_stars_role_id, one_star_role_id
 from model import MechanicEmployee, Punishment
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks, \
-    send_lobby_dm, on_star_role_add, get_rank_up_managers
+    send_lobby_dm, on_star_role_add, get_rank_up_managers, get_gang_employee, get_chiefs
 from setup_db import setup_tables, get_user, update_mc, save_punish, get_punishments, del_punishments
 from utils import retrieve_sv_status
 from discord_slash.utils.manage_components import create_button, create_actionrow
@@ -605,8 +605,8 @@ async def profile(ctx: SlashContext, employee):
 @slash.slash(name="star", description="Star dealer", guild_ids=guild_ids)
 async def star_store(ctx: SlashContext):
     if ctx.author:
-        # roles = get_ranks_roles_by_id(ctx.guild)
-        # await ctx.author.add_roles(roles[three_stars_role_id])
+        roles = get_ranks_roles_by_id(ctx.guild)
+        await ctx.author.add_roles(roles[three_stars_role_id])
         emojis = client.emojis
         emojis = {e.name: str(e) for e in emojis}
         role_ids = [r.id for r in ctx.author.roles]
@@ -683,11 +683,14 @@ async def star_store_handler(ctx: discord_slash.context.ComponentContext):
         await ctx.channel.send(embed=embed_var)
         return
     if ctx.custom_id == "rent_vip":
+        for gm in get_gang_employee(ctx.guild):
+            channel = await gm.create_dm()
+            await channel.send(content=f"{ctx.author.mention} یک ستاره جهت اجاره ماشین های VIP استفاده کرد ")
         await ctx.author.remove_roles(roles[star_number[number_of_stars]])
         number_of_stars -= 1
         if number_of_stars > 0:
             await ctx.author.add_roles(roles[star_number[number_of_stars]])
-        await ctx.send(
+        await ctx.channel.send(
             content=f'{ctx.author.mention} شما به مدت دو هفته اجازه استفاده از ماشین های VIP گنگ مکانیکی را دارید')
 
     elif ctx.custom_id == "remove_strike":
@@ -722,6 +725,10 @@ async def star_store_handler(ctx: discord_slash.context.ComponentContext):
                             await ctx.channel.send(embed=embed_var)
                             update_mc(mc)
                             removed = True
+                            for c in get_chiefs(ctx.guild):
+                                channel = await c.create_dm()
+                                await channel.send(
+                                    content=f"{ctx.author.mention} یک ستاره خود را جهت پاک کردن اخطار استفاده کرد")
                             break
 
                 if not removed:
@@ -753,6 +760,7 @@ async def star_store_handler(ctx: discord_slash.context.ComponentContext):
                                               f"this week, make it done.",
                                   color=discord.Colour(0xFFFF00))
         await channel.send(embed=embed_var)
+        await ctx.channel.send(content="درخواست شما برای مدیریت ارسال شد.")
     return
 
 

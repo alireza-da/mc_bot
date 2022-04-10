@@ -3,7 +3,7 @@ from dateutil import tz
 from setup_db import del_punishments, get_user, update_mc
 from model import Punishment
 from credentials import interviewer_role_id, lobby_vc_id, management_role_id, mc_chief_id, mc_deputy_id, \
-    rank_up_manager_role_id
+    rank_up_manager_role_id, gang_employee_role_id
 from discord.utils import get
 
 import asyncio
@@ -178,6 +178,24 @@ def get_rank_up_managers(mc_guild: discord.Guild):
 
     return res
 
+
+def get_gang_employee(mc_guild: discord.Guild):
+    res = []
+    for mc in mc_guild.members:
+        role_ids = [r.id for r in mc.roles]
+        if role_ids.__contains__(gang_employee_role_id) or role_ids.__contains__(
+                mc_chief_id) or role_ids.__contains__(mc_deputy_id):
+            res.append(mc)
+    return res
+
+
+def get_chiefs(mc_guild: discord.Guild):
+    res = []
+    for mc in mc_guild.members:
+        role_ids = [r.id for r in mc.roles]
+        if role_ids.__contains__(mc_chief_id) or role_ids.__contains__(mc_deputy_id):
+            res.append(mc)
+    return res
 
 def remove_cd_lobby():
     # print(interview_cool_down_list)
