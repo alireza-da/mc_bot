@@ -683,15 +683,19 @@ async def star_store_handler(ctx: discord_slash.context.ComponentContext):
         await ctx.channel.send(embed=embed_var)
         return
     if ctx.custom_id == "rent_vip":
-        for gm in get_gang_employee(ctx.guild):
-            channel = await gm.create_dm()
-            await channel.send(content=f"{ctx.author.mention} یک ستاره جهت اجاره ماشین های VIP استفاده کرد ")
-        await ctx.author.remove_roles(roles[star_number[number_of_stars]])
-        number_of_stars -= 1
-        if number_of_stars > 0:
-            await ctx.author.add_roles(roles[star_number[number_of_stars]])
-        await ctx.channel.send(
-            content=f'{ctx.author.mention} شما به مدت دو هفته اجازه استفاده از ماشین های VIP گنگ مکانیکی را دارید')
+
+        if number_of_stars > 1:
+            exp_date = datetime.now() + timedelta(weeks=2)
+            await ctx.author.remove_roles(roles[star_number[number_of_stars]])
+            number_of_stars -= 1
+            if number_of_stars > 0:
+                await ctx.author.add_roles(roles[star_number[number_of_stars]])
+            for gm in get_gang_employee(ctx.guild):
+                channel = await gm.create_dm()
+                await channel.send(content=f"{ctx.author.mention} یک ستاره جهت اجاره ماشین های VIP استفاده کرد. تاریخ انقضا**{exp_date.year}.{exp_date.month}.{exp_date.day}** ")
+
+            await ctx.channel.send(
+                content=f'{ctx.author.mention} شما به مدت دو هفته اجازه استفاده از ماشین های VIP گنگ مکانیکی را دارید. تاریخ انقضا **{exp_date.year}.{exp_date.month}.{exp_date.day}**')
 
     elif ctx.custom_id == "remove_strike":
 
