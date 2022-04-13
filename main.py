@@ -552,10 +552,10 @@ async def remove_strike(ctx: SlashContext, employee):
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.STRIKE:
                     del_punishments(_id, p.date, Punishment.STRIKE)
+                    mc.strikes -= 1
                     await ctx.send(
                         content=f"**{employee}. One of your strikes has been removed now you have {mc.strikes} strikes**")
                     update_mc(mc)
-                    mc.strikes -= 1
                     break
 
 
@@ -576,10 +576,11 @@ async def remove_warn(ctx: SlashContext, employee):
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.WARN:
                     del_punishments(_id, p.date, Punishment.WARN)
+                    mc.warns -= 1
                     await ctx.send(
                         content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
                     update_mc(mc)
-                    mc.warns -= 1
+
                     break
 
 
