@@ -12,7 +12,7 @@ from discord.utils import get
 from discord_slash import SlashCommand, SlashContext
 
 from backend import keep_alive
-from credentials import bot_token, mc_bot_id, three_stars_role_id, two_stars_role_id, one_star_role_id
+from credentials import bot_token, mc_bot_id, three_stars_role_id, two_stars_role_id, one_star_role_id, management_role_id, supervisor_role_id
 from model import MechanicEmployee, Punishment
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks, \
     send_lobby_dm, on_star_role_add, get_rank_up_managers, get_gang_employee, get_chiefs
@@ -508,6 +508,11 @@ async def strike(ctx: SlashContext, employee, reason):
             update_mc(mc)
             user = get(client.get_all_members(), id=_id)
             await user.add_roles(strike_roles[mc.strikes])
+            if supervisor_role_id in role_ids or management_role_id in role_ids:
+                channel = await user.create_dm()
+                await channel.send(content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
+                                                                                                        emojis[
+                                                                                                            "strikes"]))
             return
         elif mc.strikes == 2:
             await ctx.send(
@@ -517,6 +522,19 @@ async def strike(ctx: SlashContext, employee, reason):
             await ctx.send(
                 content=f"**{employee}. Shoma be dalile dashtan 3 strike fire shodid,"
                         f" dar soorat dashtan har goone eteraz be Management payam bedahid**")
+
+            user = get(client.get_all_members(), id=_id)
+            print(user.roles)
+            user_role_ids = [r.id for r in user.roles]
+            if supervisor_role_id in user_role_ids or management_role_id in user_role_ids:
+                print("Sending DM")
+                channel = await user.create_dm()
+                await channel.send(content=f"**{employee}. Shoma be dalile: {reason}, strike gereftid** :strikes:".replace(":strikes:",
+                                                                                                        emojis[
+                                                                                                            "strikes"]))
+                await channel.send(
+                    content=f"**{employee}. Shoma be dalile dashtan 3 strike fire shodid,"
+                            f" dar soorat dashtan har goone eteraz be Management payam bedahid**")
             mc.strikes += 1
             ps = Punishment(Punishment.STRIKE, datetime.now(), _id)
             save_punish(ps)
@@ -548,7 +566,6 @@ async def remove_strike(ctx: SlashContext, employee):
                 await user.remove_roles(strike_roles[mc.strikes])
             except Exception as e:
                 print("Cant remove role")
-
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.STRIKE:
                     del_punishments(_id, p.date, Punishment.STRIKE)
