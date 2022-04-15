@@ -61,10 +61,20 @@ async def on_ready():
     # punishes = mc_guild.get_channel(866287973627985920)
     # punishes = await punishes.history().flatten()
     # for punish in punishes:
-    #     if "remove" in punish.content:
+    #     # print(punish.content)
+    #     if "remove" in punish.content and "strike" in punish.content:
+    #         if len(get_punishments(punish.mentions[0].id)) > 0:
+    #             last_punish = get_punishments(punish.mentions[0].id)[0]
+    #             del_punishments(last_punish.em_id, last_punish.date, Punishment.STRIKE)
+    #         continue
+    #     elif "remove" in punish.content and "warn" in punish.content:
+    #         if len(get_punishments(punish.mentions[0].id)) > 0:
+    #             last_punish = get_punishments(punish.mentions[0].id)[0]
+    #             del_punishments(last_punish.em_id, last_punish.date, Punishment.WARN)
     #         continue
     #     if "strike" in punish.content:
     #         save_punish(Punishment(Punishment.STRIKE, punish.created_at, punish.mentions[0].id))
+    #         continue
     #     elif "warn" in punish.content:
     #         save_punish(Punishment(Punishment.WARN, punish.created_at, punish.mentions[0].id))
 
@@ -73,7 +83,7 @@ async def on_ready():
 
     global bot_test_channel
     bot_test_channel = mhkn_guild.get_channel(936566301994942464)
-    # creating a reactive sunset server status message
+    # creating a reactive sunset server status message`
     embed_args = retrieve_sv_status()
     embed_sv_status = discord.Embed(type='rich', description=embed_args['description']
                                     .replace("<:SSMD:830878795602591774>", emojis["SSMD"])
@@ -617,7 +627,7 @@ async def profile(ctx: SlashContext, employee):
     #     pass
     mc = get_user(_id)
     await ctx.send(
-        content=f"{employee}\nIC Name : {mc.ic_name} \nRoster ID : {mc.roster_id} \nRank : {mc.rank} \nWarns : {mc.warns} \nStrikes : {mc.strikes}")
+        content=f"{employee}\nIC Name : {mc.ic_name} \nRoster ID : {mc.roster_id} \nRank : {mc.rank} \nWarns : {mc.warns} \nStrikes : {mc.strikes}\n")
 
 
 @slash.slash(name="star", description="Star dealer", guild_ids=guild_ids)
@@ -802,13 +812,14 @@ async def create_mc_from_discord(guild: discord.Guild):
     for member in members:
         role_ids = [r.id for r in member.roles]
         if 842695874668003328 in role_ids or role_ids.__contains__(842695874668003328):
-            # print(member, member.roles, role_ids)
             if get_ic_roster(member) is not None:
                 ic, roster, rank = get_ic_roster(member)
                 mc = MechanicEmployee(ic, roster, member.id, "")
                 punishes = await non_blocking_data_insertion(get_punishments, member.id)
                 warns = 0
                 strikes = 0
+                mc.strikes = 0
+                mc.warns = 0
                 if punishes is not None:
                     for punish in punishes:
                         if punish.punish_type == Punishment.WARN:
@@ -819,6 +830,8 @@ async def create_mc_from_discord(guild: discord.Guild):
                     mc.strikes = strikes
                 if warns % 2 == 0:
                     mc.warns = 0
+                else:
+                    mc.warns = 1
                 mc.rank = rank
                 temp.append(mc)
 
@@ -851,14 +864,17 @@ def get_ic_roster(member: discord.Member):
                     return ic, roster, 5
                 elif 812998810397442109 in role_ids:
                     return ic, roster, 6
-                elif 881178069241569340 in role_ids:
+                elif 956697633798365215 in role_ids:
                     return ic, roster, 7
-                elif 812998812943122446 in role_ids:
+                elif 881178069241569340 in role_ids:
                     return ic, roster, 8
-                elif 812998818328739872 in role_ids:
+                elif 812998812943122446 in role_ids:
                     return ic, roster, 9
-                elif 798587846868860960 in role_ids:
+                elif 812998818328739872 in role_ids:
                     return ic, roster, 10
+                elif 798587846868860960 in role_ids:
+                    return ic, roster, 11
+
         else:
             return member.name.split("#")[0], 0, 11
 
