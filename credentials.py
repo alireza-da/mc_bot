@@ -20,3 +20,4 @@ two_stars_role_id = 916694480080494603
 one_star_role_id = 916694284323938325
 rank_up_manager_role_id = 920045877731659829
 gang_employee_role_id = 922148468624072736
+warn_role_id = 964633298397704202
