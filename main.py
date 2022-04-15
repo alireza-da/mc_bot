@@ -12,7 +12,7 @@ from discord.utils import get
 from discord_slash import SlashCommand, SlashContext
 
 from backend import keep_alive
-from credentials import bot_token, mc_bot_id, three_stars_role_id, two_stars_role_id, one_star_role_id, management_role_id, supervisor_role_id
+from credentials import bot_token, mc_bot_id, three_stars_role_id, two_stars_role_id, one_star_role_id, management_role_id, supervisor_role_id, warn_role_id
 from model import MechanicEmployee, Punishment
 from notification_handler import read_off_duties, delete_old_messages, create_embed_template, delete_warn_2_weeks, \
     send_lobby_dm, on_star_role_add, get_rank_up_managers, get_gang_employee, get_chiefs
@@ -426,6 +426,7 @@ async def warn(ctx: SlashContext, employee, reason):
         if mc.warns == 2:
             mc.warns = 0
             punishes = get_punishments(_id)
+
             for p in punishes:
                 if mc.warns == 0:
                     break
@@ -444,6 +445,7 @@ async def warn(ctx: SlashContext, employee, reason):
                 save_punish(ps)
                 user = get(client.get_all_members(), id=_id)
                 await user.add_roles(strike_roles[mc.strikes])
+                await user.remove_roles(roles[warn_role_id])
                 update_mc(mc)
             if mc.strikes == 3:
                 await ctx.send(
@@ -459,6 +461,8 @@ async def warn(ctx: SlashContext, employee, reason):
             return
 
         ps = Punishment(Punishment.WARN, datetime.now(), _id)
+        user = get(client.get_all_members(), id=_id)
+        await user.add_roles(roles[warn_role_id])
         save_punish(ps)
         update_mc(mc)
 
