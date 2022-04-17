@@ -21,7 +21,7 @@ def add_mcs_to_db(mechanics_list: list[MechanicEmployee]):
             mc = mcs[mechanic.discord_id]
 
             if mc and (
-                    mc.ic_name != mechanic.ic_name or mc.roster_id != mechanic.roster_id or mc.rank != mechanic.rank):
+                    mc.ic_name != mechanic.ic_name or mc.roster_id != mechanic.roster_id or mc.rank != mechanic.rank or mc.warns != mechanic.warns or mc.strikes != mechanic.strikes):
                 update_mc(mechanic)
                 continue
         except Exception as e:
@@ -169,7 +169,7 @@ def update_mc(mc: MechanicEmployee):
                    "strikes = %s, steam_hex = %s WHERE discord_id = %s "
     con, cursor = create_connection()
     try:
-        print(f"[INFO]: Saving mechanic: {mc.ic_name}")
+        print(f"[INFO]: Updating mechanic: {mc.ic_name}")
         cursor.execute(update_query, (mc.roster_id, mc.ic_name, mc.discord_id, mc.rank, mc.warns, mc.strikes,
                                       mc.steam_hex, mc.discord_id))
         con.commit()
@@ -220,9 +220,9 @@ def create_connection():
 
 
 # delete_db()
-# mc = get_user(583223852641812499)
+# mc = get_user(804328436037582878)
 # print(mc.ic_name)
 # mc.warns = 0
-# mc.strikes = 2
+# mc.strikes = 1
 # update_mc(mc)
 # setup_tables([])
