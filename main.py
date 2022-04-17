@@ -596,6 +596,7 @@ async def remove_strike(ctx: SlashContext, employee):
              )
 async def remove_warn(ctx: SlashContext, employee):
     role_ids = [r.id for r in ctx.author.roles]
+    roles = get_ranks_roles_by_id(ctx.guild)
     # mc_guild = client.get_guild(798587846859423744)
     _id = int(employee.split("!")[1].replace(">", ""))
     # supervisor and management
@@ -607,6 +608,9 @@ async def remove_warn(ctx: SlashContext, employee):
             for p in get_punishments(_id):
                 if p.punish_type == Punishment.WARN:
                     del_punishments(_id, p.date, Punishment.WARN)
+                    user = get(client.get_all_members(), id=_id)
+
+                    await user.remove_roles(roles[warn_role_id])
                     mc.warns -= 1
                     await ctx.send(
                         content=f"**{employee}. One of your warns has been removed now you have {mc.warns} warns**")
