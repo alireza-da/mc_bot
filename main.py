@@ -634,8 +634,16 @@ async def profile(ctx: SlashContext, employee):
     #         or 798587846868860965 in role_ids or 903940304749600768 in role_ids:
     #     pass
     mc = get_user(_id)
+    stars = 0
+    role_ids = [r.id for r in ctx.author.roles]
+    if three_stars_role_id in role_ids:
+        stars = 3
+    elif two_stars_role_id in role_ids:
+        stars = 2
+    elif one_star_role_id in role_ids:
+        stars = 1
     await ctx.send(
-        content=f"{employee}\nIC Name : {mc.ic_name} \nRoster ID : {mc.roster_id} \nRank : {mc.rank} \nWarns : {mc.warns} \nStrikes : {mc.strikes}\n")
+        content=f"{employee}\nIC Name : {mc.ic_name} \nRoster ID : {mc.roster_id} \nRank : {mc.rank} \nWarns : {mc.warns} \nStrikes : {mc.strikes}\nStars: {stars}")
 
 
 @slash.slash(name="star", description="Star dealer", guild_ids=guild_ids)
@@ -857,7 +865,8 @@ def get_ic_roster(member: discord.Member):
             elif ")" in member.nick:
                 divided = member.nick.split(")")
                 ic = divided[1]
-                roster = divided[0].split("-")[1].replace(")", "")
+                roster = divided[0].split("(")[1].replace(")", "")
+                print(roster)
                 # 2│Patrol
                 if 812998799063515186 in role_ids:
                     return ic, roster, 2
