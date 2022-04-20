@@ -52,7 +52,7 @@ def setup_tables(list_users):
         if ("mechanics",) not in tables:
             cursor.execute(
                 """CREATE TABLE mechanics (
-                    roster_id INTEGER,
+                    roster_id VARCHAR(255),
                     ic_name VARCHAR(255),
                     discord_id BIGINT PRIMARY KEY,
                     rank INTEGER,
